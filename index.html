@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>医药行业 AI 产品管理系统</title>
+<style>
+:root{
+  --bg:#f4f5f3; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --ink3:#898781;
+  --hairline:rgba(11,11,11,.10); --grid:#e1e0d9;
+  --c1:#2a78d6; --c2:#008300; --c3:#e87ba4; --c4:#eda100; --c6:#eb6834; --c7:#4a3aa7;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --shadow:0 1px 2px rgba(11,11,11,.05), 0 6px 24px rgba(11,11,11,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6;display:flex;flex-direction:column;overflow:hidden}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+a{text-decoration:none;color:inherit}
+:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+
+/* ============ 顶部导航 ============ */
+.topnav{height:58px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--hairline);
+  display:flex;align-items:center;gap:10px;padding:0 20px;z-index:10}
+.logo{display:flex;align-items:center;gap:10px;margin-right:14px}
+.logo .mk{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#1c5cab,#4a3aa7);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-weight:750;font-size:14px}
+.logo .nm{font-weight:700;font-size:15px;letter-spacing:.2px}
+.logo .sb{font-size:10.5px;color:var(--ink3)}
+.nav-tab{position:relative;padding:8px 14px;border-radius:8px;font-size:13.5px;color:var(--ink2);
+  transition:background .15s,color .15s}
+.nav-tab:hover{background:rgba(11,11,11,.05);color:var(--ink)}
+.nav-tab.on{background:#eaf2fc;color:var(--ink);font-weight:650}
+.nav-tab.on::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2.5px;border-radius:2px;background:var(--c1)}
+.topnav .grow{flex:1}
+.clock{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink2);margin-right:14px}
+.sysdot{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-right:16px}
+.sysdot .d{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(12,163,12,.15)}
+.avatar{width:32px;height:32px;border-radius:50%;background:#efe6f8;color:#5b3f92;display:flex;
+  align-items:center;justify-content:center;font-weight:650;font-size:13px}
+
+/* ============ 内容区 ============ */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+#overview{flex:1;overflow-y:auto;padding:22px 26px 16px}
+#moduleFrame{flex:1;border:none;width:100%;background:#fff}
+
+/* 欢迎条 */
+.welcome{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.welcome h1{font-size:19px;font-weight:750;letter-spacing:-.2px}
+.welcome .sub{font-size:12.5px;color:var(--ink3)}
+.welcome .acts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:550;
+  border:1px solid var(--hairline);background:var(--surface);color:var(--ink);transition:all .15s}
+.btn:hover{background:rgba(11,11,11,.05);transform:translateY(-1px)}
+.btn.primary{background:var(--c1);border-color:var(--c1);color:#fff}
+.btn.primary:hover{background:#256abf}
+
+/* KPI 瓦片 */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:13px 15px 11px;
+  position:relative;overflow:hidden;cursor:default;transition:all .18s;box-shadow:var(--shadow)}
+.kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--c1);opacity:.85}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(11,11,11,.1)}
+.kpi .lbl{font-size:11.5px;color:var(--ink2);display:flex;justify-content:space-between;align-items:center}
+.kpi .lbl .pct{font-size:10.5px;color:var(--good);font-weight:600}
+.kpi .val{font-size:23px;font-weight:750;letter-spacing:-.4px;margin:3px 0 1px;font-variant-numeric:tabular-nums}
+.kpi .val .u{font-size:12px;color:var(--ink3);font-weight:500;margin-left:2px}
+.kpi .note{font-size:10.5px;color:var(--ink3)}
+.kpi svg{position:absolute;right:12px;bottom:10px;opacity:.9}
+
+/* 模块面板 */
+.mods{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.mod{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;cursor:pointer;position:relative;overflow:hidden;transition:all .18s}
+.mod::before{content:"";position:absolute;top:0;left:0;right:0;height:3.5px;background:var(--ac)}
+.mod:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(11,11,11,.12);border-color:var(--ac)}
+.mod-h{display:flex;align-items:center;gap:10px;padding:14px 16px 6px}
+.mod-h .ic{width:30px;height:30px;border-radius:8px;color:#fff;display:flex;align-items:center;
+  justify-content:center;font-weight:750;font-size:12px;background:var(--ac)}
+.mod-h .nm{font-weight:700;font-size:14.5px}
+.mod-h .pill{margin-left:auto}
+.mod-desc{font-size:11.5px;color:var(--ink3);padding:0 16px 8px;margin-top:-2px}
+.mod-stats{display:flex;gap:16px;padding:4px 16px 10px}
+.mod-stats .ms .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.mod-stats .ms .k{font-size:10.5px;color:var(--ink3)}
+.mod-chart{padding:0 14px 12px;flex:1;min-height:120px;position:relative}
+.mod-foot{display:flex;align-items:center;padding:10px 16px;border-top:1px dashed var(--grid);font-size:12.5px;color:var(--ac);font-weight:650}
+.mod-foot .arrow{margin-left:auto;transition:transform .18s}
+.mod:hover .mod-foot .arrow{transform:translateX(4px)}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:1px 9px;border-radius:999px;font-size:11px;
+  border:1px solid var(--hairline);background:rgba(11,11,11,.03);color:var(--ink2)}
+.pill .d{width:6px;height:6px;border-radius:50%}
+.pill.good{background:rgba(12,163,12,.08);border-color:rgba(12,163,12,.35);color:#08750b}
+.pill.good .d{background:var(--good)}
+.pill.warn{background:rgba(250,178,25,.12);border-color:rgba(250,178,25,.45);color:#8a5f00}
+.pill.warn .d{background:var(--warn)}
+.pill.serious{background:rgba(236,131,90,.1);border-color:rgba(236,131,90,.4);color:#a14f22}
+.pill.serious .d{background:var(--serious)}
+.pill.crit{background:rgba(208,59,59,.08);border-color:rgba(208,59,59,.35);color:#a82828}
+.pill.crit .d{background:var(--crit)}
+.pill.blue{background:rgba(42,120,214,.08);border-color:rgba(42,120,214,.35);color:#1c5cab}
+.pill.blue .d{background:var(--c1)}
+
+/* 实时动态 + 告警 */
+.brow{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.card-h{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--hairline);
+  font-weight:700;font-size:13px}
+.card-h .hint{margin-left:auto;font-size:11px;color:var(--ink3);font-weight:400}
+.feed{min-height:224px}
+.feed-item{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--hairline);
+  font-size:12px;transition:background .15s;animation:fadein .5s}
+.feed-item:hover{background:rgba(11,11,11,.03)}
+.feed-item:last-child{border-bottom:none}
+.feed-item .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink2)}
+.feed-item .time{font-size:10.5px;color:var(--ink3);white-space:nowrap}
+@keyframes fadein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.alert-row{display:flex;align-items:center;gap:10px;padding:9.5px 16px;border-bottom:1px solid var(--hairline);
+  font-size:12px;cursor:default;transition:background .15s}
+.alert-row:hover{background:rgba(11,11,11,.03)}
+.alert-row:last-child{border-bottom:none}
+.alert-row .t{flex:1;color:var(--ink2)}
+.alert-row .meta{font-size:10.5px;color:var(--ink3);white-space:nowrap}
+
+/* 底部管道 */
+.footbar{display:flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--hairline);
+  border-radius:12px;padding:10px 16px;font-size:11.5px;color:var(--ink2);margin-bottom:4px}
+.footbar .grow{flex:1}
+.footbar .pipe{display:flex;align-items:center;gap:6px}
+.footbar .pipe .d{width:7px;height:7px;border-radius:50%;background:var(--good)}
+.footbar .pipe:hover .d{box-shadow:0 0 0 4px rgba(12,163,12,.15)}
+.footbar .v{color:var(--ink3)}
+.viz-tt{position:absolute;pointer-events:none;background:var(--ink);color:#fff;border-radius:8px;padding:7px 10px;
+  font-size:11.5px;opacity:0;transition:opacity .12s;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.viz-tt .h{font-size:10.5px;color:rgba(255,255,255,.65);margin-bottom:3px}
+.viz-tt b{font-variant-numeric:tabular-nums}
+@media (max-width:1080px){.kpis{grid-template-columns:repeat(3,1fr)}.mods{grid-template-columns:1fr}.brow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ================= 顶部导航 ================= -->
+<div class="topnav">
+  <div class="logo">
+    <div class="mk">AI</div>
+    <div><div class="nm">医药行业 AI 产品管理系统</div><div class="sb">Pharma AI Console · 产品演示</div></div>
+  </div>
+  <button class="nav-tab on" data-mod="overview">总览</button>
+  <button class="nav-tab" data-mod="lit">循证智能体</button>
+  <button class="nav-tab" data-mod="ip">IP 智能体</button>
+  <button class="nav-tab" data-mod="pv">药物警戒智能体</button>
+  <span class="grow"></span>
+  <span class="clock" id="clock">--:--:--</span>
+  <span class="sysdot"><span class="d"></span>全部系统正常</span>
+  <span class="avatar">演示</span>
+</div>
+
+<div class="main">
+  <!-- ================= 总览 ================= -->
+  <div id="overview">
+    <div class="welcome">
+      <div>
+        <h1>今日系统概览</h1>
+        <span class="sub" id="welcomeDate">—— 数据均为虚构演示数据,所有数字实时模拟更新</span>
+      </div>
+      <div class="acts">
+        <button class="btn" onclick="goMod('lit')">发起循证问答</button>
+        <button class="btn" onclick="goMod('ip')">新建专利排查</button>
+        <button class="btn primary" onclick="goMod('pv')">查看今日待办</button>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="lbl">全球文献知识库<span class="pct">日更</span></div>
+        <div class="val">8,420<span class="u">万篇</span></div>
+        <div class="note" id="kpiLitNote">今日新增 18,642 篇</div>
+        <svg width="76" height="26" viewBox="0 0 76 26"><polyline id="sp1" fill="none" stroke="#2a78d6" stroke-width="1.6" stroke-linecap="round" points=""/><circle id="sp1d" r="2.6" fill="#2a78d6"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="lbl">全球专利库<span class="pct">日更</span></div>
+        <div class="val">1.9<span class="u">亿件</span></div>
+        <div class="note" id="kpiIpNote">今日新增 24,318 件</div>
+        <svg width="76" height="26" viewBox="0 0 76 26"><polyline id="sp2" fill="none" stroke="#4a3aa7" stroke-width="1.6" stroke-linecap="round" points=""/><circle id="sp2d" r="2.6" fill="#4a3aa7"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="lbl">信号库报告<span class="pct">日更</span></div>
+        <div class="val">3,200<span class="u">万例</span></div>
+        <div class="note" id="kpiPvNote">今日新增 12,486 例</div>
+        <svg width="76" height="26" viewBox="0 0 76 26"><polyline id="sp3" fill="none" stroke="#0ca30c" stroke-width="1.6" stroke-linecap="round" points=""/><circle id="sp3d" r="2.6" fill="#0ca30c"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="lbl">今日 AI 调用<span class="pct" style="color:var(--c1)">实时</span></div>
+        <div class="val" id="kpiCall">48.2<span class="u">万次</span></div>
+        <div class="note">问答 / 抽取 / 比对 / 编码</div>
+        <svg width="76" height="26" viewBox="0 0 76 26"><polyline id="sp4" fill="none" stroke="#eb6834" stroke-width="1.6" stroke-linecap="round" points=""/><circle id="sp4d" r="2.6" fill="#eb6834"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="lbl">系统可用性<span class="pct">30 日</span></div>
+        <div class="val">99.97<span class="u">%</span></div>
+        <div class="note">三大模块 · 5 条数据管道</div>
+        <svg width="76" height="26" viewBox="0 0 76 26"><polyline id="sp5" fill="none" stroke="#008300" stroke-width="1.6" stroke-linecap="round" points=""/><circle id="sp5d" r="2.6" fill="#008300"/></svg>
+      </div>
+    </div>
+
+    <!-- 三大模块面板 -->
+    <div class="mods">
+      <div class="mod" style="--ac:#2a78d6" onclick="goMod('lit')">
+        <div class="mod-h"><div class="ic">循</div><div class="nm">循证智能体</div><span class="pill good"><span class="d"></span>运行中</span></div>
+        <div class="mod-desc">全球文献 × AI · 读文献、查证据,每个结论带出处</div>
+        <div class="mod-stats">
+          <div class="ms"><div class="v">1,286</div><div class="k">今日问答(次)</div></div>
+          <div class="ms"><div class="v">98.6%</div><div class="k">引用准确率</div></div>
+          <div class="ms"><div class="v">3</div><div class="k">综述进行中</div></div>
+        </div>
+        <div class="mod-chart" id="chartLit" style="position:relative"></div>
+        <div class="mod-foot">进入工作台<span class="arrow">→</span></div>
+      </div>
+
+      <div class="mod" style="--ac:#4a3aa7" onclick="goMod('ip')">
+        <div class="mod-h"><div class="ic">IP</div><div class="nm">IP 智能体</div><span class="pill serious"><span class="d"></span>1 项高风险</span></div>
+        <div class="mod-desc">全球专利 × AI · 查风险、挖机会,风险雷达+机会矿机</div>
+        <div class="mod-stats">
+          <div class="ms"><div class="v">4</div><div class="k">排查进行中</div></div>
+          <div class="ms"><div class="v">94.2%</div><div class="k">检索覆盖度</div></div>
+          <div class="ms"><div class="v">5</div><div class="k">监控订阅</div></div>
+        </div>
+        <div class="mod-chart" id="chartIp" style="position:relative"></div>
+        <div class="mod-foot">进入工作台<span class="arrow">→</span></div>
+      </div>
+
+      <div class="mod" style="--ac:#0ca30c" onclick="goMod('pv')">
+        <div class="mod-h"><div class="ic">PV</div><div class="nm">药物警戒智能体</div><span class="pill warn"><span class="d"></span>8 项待复核</span></div>
+        <div class="mod-desc">药物警戒 × AI · 筛文献、录个案、跑信号,人审签字</div>
+        <div class="mod-stats">
+          <div class="ms"><div class="v">24</div><div class="k">今日新报告</div></div>
+          <div class="ms"><div class="v">30<span style="font-size:11px;color:var(--ink3)"> 分钟</span></div><div class="k">单例平均处理</div></div>
+          <div class="ms"><div class="v">97%</div><div class="k">分层一致率</div></div>
+        </div>
+        <div class="mod-chart" id="chartPv" style="position:relative"></div>
+        <div class="mod-foot">进入工作台<span class="arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- 实时动态 + 告警中心 -->
+    <div class="brow">
+      <div class="card">
+        <div class="card-h">实时动态<span class="hint">三大模块的最新事件,实时滚动</span></div>
+        <div class="feed" id="feed"></div>
+      </div>
+      <div class="card">
+        <div class="card-h">告警中心<span class="hint">需关注的待办与提醒</span></div>
+        <div id="alerts"></div>
+      </div>
+    </div>
+
+    <!-- 底部管道 -->
+    <div class="footbar">
+      <span class="pipe"><span class="d"></span>文献管道 · 实时同步</span>
+      <span class="pipe"><span class="d"></span>专利管道 · 实时同步</span>
+      <span class="pipe"><span class="d"></span>信号库 · 实时同步</span>
+      <span class="grow"></span>
+      <span class="v">版本 v2026.10 · 数据均为虚构演示数据 · 纯前端离线运行</span>
+    </div>
+  </div>
+
+  <!-- 模块内嵌框架 -->
+  <iframe id="moduleFrame" style="display:none" title="产品模块"></iframe>
+</div>
+
+<script>
+/* ================= 工具 ================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function spark(id,idDot,data){
+  const el=document.getElementById(id),W=76,H=26,pad=4;
+  const max=Math.max(...data),min=Math.min(...data);
+  const X=i=>pad+(W-pad*2)*i/(data.length-1), Y=v=>H-4-(H-8)*(v-min)/(max-min||1);
+  el.setAttribute('points',data.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' '));
+  const d=document.getElementById(idDot);d.setAttribute('cx',X(data.length-1));d.setAttribute('cy',Y(data[data.length-1]));
+}
+spark('sp1','sp1d',[22,24,23,26,25,28,27,30,29,32,31,34]);
+spark('sp2','sp2d',[18,19,20,19,22,21,24,25,24,27,28,30]);
+spark('sp3','sp3d',[16,17,18,17,19,20,21,20,23,22,24,26]);
+spark('sp4','sp4d',[10,12,11,14,13,16,15,18,20,19,22,24]);
+spark('sp5','sp5d',[99.9,99.95,99.92,99.98,99.96,99.97,99.99,99.98,99.97,99.99,99.98,99.97]);
+
+/* ================= 时钟 + 实时 KPI ================= */
+function tickClock(){$('#clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false});}
+tickClock();setInterval(tickClock,1000);
+let litN=18642, ipN=24318, pvN=12486, callN=482300;
+setInterval(()=>{
+  litN+=Math.ceil(Math.random()*3); ipN+=Math.ceil(Math.random()*4); pvN+=Math.ceil(Math.random()*3); callN+=Math.ceil(Math.random()*90);
+  $('#kpiLitNote').textContent='今日新增 '+litN.toLocaleString()+' 篇';
+  $('#kpiIpNote').textContent='今日新增 '+ipN.toLocaleString()+' 件';
+  $('#kpiPvNote').textContent='今日新增 '+pvN.toLocaleString()+' 例';
+  $('#kpiCall').innerHTML=(callN/10000).toFixed(1)+'<span class="u">万次</span>';
+},2200);
+
+/* ================= 模块图表 ================= */
+function ttFor(el){const t=document.createElement('div');t.className='viz-tt';el.appendChild(t);return t;}
+/* 循证:近12周文献热度折线 */
+(function(){
+  const box=$('#chartLit'), W=box.clientWidth||300, H=110, pad={l:8,r:8,t:10,b:14};
+  const data=[620,655,640,700,720,760,780,810,830,860,900,940];
+  const max=Math.max(...data)*1.05, X=i=>pad.l+(W-pad.l-pad.r)*i/(data.length-1), Y=v=>H-pad.b-(H-pad.t-pad.b)*v/max;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width','100%');svg.setAttribute('height',H);svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('preserveAspectRatio','none');
+  svg.innerHTML='<line x1="'+pad.l+'" y1="'+Y(600)+'" x2="'+(W-pad.r)+'" y2="'+Y(600)+'" stroke="#e1e0d9" stroke-width="1"/>'+
+    '<polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linecap="round" points="'+data.map((v,i)=>X(i)+','+Y(v)).join(' ')+'"/>'+
+    '<circle cx="'+X(11)+'" cy="'+Y(940)+'" r="3.5" fill="#2a78d6" stroke="#fff" stroke-width="2"/>'+
+    '<text x="'+(W-pad.r)+'" y="'+H-2+'" text-anchor="end" font-size="9" fill="#898781">近12周文献热度</text>';
+  box.appendChild(svg);
+  const tt=ttFor(box);
+  box.addEventListener('mousemove',e=>{
+    const r=box.getBoundingClientRect(),px=e.clientX-r.left;
+    const i=Math.max(0,Math.min(11,Math.round((px-pad.l)/((W-pad.l-pad.r)/11))));
+    tt.innerHTML='<div class="h">第 '+(i+1)+' 周</div><b>'+data[i]+'</b> 篇';
+    tt.style.left=Math.min(Math.max(px-40,4),W-100)+'px';tt.style.top='2px';tt.style.opacity=1;
+  });
+  box.addEventListener('mouseleave',()=>{tt.style.opacity=0;});
+})();
+/* IP:法律状态环形图 */
+(function(){
+  const box=$('#chartIp');
+  const segs=[{n:'有效',v:45,c:'#2a78d6'},{n:'审查中',v:18,c:'#008300'},{n:'失效',v:24,c:'#eb6834'},{n:'到期',v:13,c:'#e87ba4'}];
+  const size=92,r=30,sw=15,C=2*Math.PI*r,cx=46,cy=55;
+  let off=0,arcs='';
+  segs.forEach(sg=>{const f=sg.v/100,len=Math.max(f*C-1.5,.5);
+    arcs+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+sg.c+'" stroke-width="'+sw+'" stroke-dasharray="'+len.toFixed(2)+' '+(C-len).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 '+cx+' '+cy+')"/>';off+=f*C;});
+  let leg='';
+  segs.forEach(sg=>{leg+='<div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#52514e"><span style="width:8px;height:8px;border-radius:3px;background:'+sg.c+'"></span>'+sg.n+' '+sg.v+'%</div>';});
+  box.innerHTML='<div style="display:flex;align-items:center;gap:10px;height:100%">'+
+    '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">'+arcs+'<text x="46" y="52" text-anchor="middle" font-size="11" font-weight="700" fill="#0b0b0b">1.9亿</text><text x="46" y="64" text-anchor="middle" font-size="8" fill="#898781">法律状态</text></svg>'+
+    '<div style="display:flex;flex-direction:column;gap:4px">'+leg+'</div></div>';
+})();
+/* PV:今日队列条形 */
+(function(){
+  const box=$('#chartPv'), W=box.clientWidth||300, H=110, pad={l:64,r:44,t:8,b:10};
+  const rows=[{n:'新报告',v:24,c:'#2a78d6'},{n:'待复核',v:8,c:'#fab219'},{n:'已上报',v:16,c:'#0ca30c'}];
+  const rowH=(H-pad.t-pad.b)/3, bw=14;
+  const max=30, X=v=>pad.l+(W-pad.l-pad.r)*v/max;
+  let s='<line x1="'+pad.l+'" y1="'+pad.t+'" x2="'+(W-pad.r)+'" y2="'+pad.t+'" stroke="#e1e0d9" stroke-width="1"/>';
+  rows.forEach((d,i)=>{const cy=pad.t+rowH*i+rowH/2,xw=X(d.v);
+    s+='<rect x="'+pad.l+'" y="'+(cy-bw/2)+'" width="'+(xw-pad.l)+'" height="'+bw+'" rx="4" fill="'+d.c+'"/>'+
+       '<text x="'+(xw+6)+'" y="'+(cy+3)+'" font-size="10" font-weight="700" fill="#0b0b0b">'+d.v+'</text>'+
+       '<text x="'+(pad.l-8)+'" y="'+(cy+3)+'" text-anchor="end" font-size="10" fill="#52514e">'+d.n+'</text>';});
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width','100%');svg.setAttribute('height',H);svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('preserveAspectRatio','none');
+  svg.innerHTML=s;box.appendChild(svg);
+  const tt=ttFor(box);
+  box.addEventListener('mousemove',e=>{
+    const r=box.getBoundingClientRect(),py=e.clientY-r.top;
+    const i=Math.max(0,Math.min(2,Math.floor((py-pad.t)/rowH)));
+    const d=rows[i];
+    tt.innerHTML='<div class="h">今日队列</div>'+d.n+' <b>'+d.v+'</b> 项';
+    tt.style.left='30px';tt.style.top='4px';tt.style.opacity=1;
+  });
+  box.addEventListener('mouseleave',()=>{tt.style.opacity=0;});
+})();
+
+/* ================= 实时动态流 ================= */
+const FEED_POOL=[
+ {p:'文献',t:'新入库:KRAS G12D 抑制剂耐药机制最新综述(Nat Rev Drug Discov)',c:'blue'},
+ {p:'专利',t:'新公开:US12034567B2 微针疫苗递送阵列(美国)',c:'blue'},
+ {p:'个例',t:'新报告:司美格鲁肽 — 胆囊炎(EudraVigilance)',c:'serious'},
+ {p:'文献',t:'MLM 分层完成:今日 1,842 篇,命中 ICSR 个案 3 篇',c:'blue'},
+ {p:'专利',t:'法律状态变更:CN118123456A 年费缴纳期限临近',c:'warn'},
+ {p:'个例',t:'ICSR-2026-1042 已完成医学审签,进入上报队列',c:'good'},
+ {p:'专利',t:'新公开:WO2026/078901 TIGIT/PD-L1 双抗(PCT)',c:'blue'},
+ {p:'文献',t:'靶点情报周报已生成:KRAS G12D(5 条动态)',c:'blue'},
+ {p:'个例',t:'信号跑批完成:新增 3 条信号待评估',c:'warn'},
+ {p:'专利',t:'US8573213B2 今日到期 — 进入公有领域,可免费使用',c:'good'},
+];
+let feedIdx=0;
+function pushFeed(){
+  const f=FEED_POOL[feedIdx%FEED_POOL.length];feedIdx++;
+  const el=document.createElement('div');el.className='feed-item';
+  el.innerHTML='<span class="pill '+f.c+'"><span class="d"></span>'+f.p+'</span><span class="t">'+f.t+'</span><span class="time">刚刚</span>';
+  $('#feed').prepend(el);
+  while($('#feed').children.length>7)$('#feed').lastChild.remove();
+}
+pushFeed();pushFeed();pushFeed();pushFeed();pushFeed();pushFeed();pushFeed();
+setInterval(pushFeed,3600);
+
+/* ================= 告警中心 ================= */
+const ALERTS=[
+ {lv:'crit',lvT:'紧急',t:'FTO-2026-004 排查发现高风险专利(US11987654B2)',meta:'10-12'},
+ {lv:'serious',lvT:'重要',t:'信号 PRR 2.41:司美格鲁肽 × 胆囊炎,待评估',meta:'10-12'},
+ {lv:'warn',lvT:'提醒',t:'MLM:3 篇文献待人工复核分层',meta:'10-12'},
+ {lv:'warn',lvT:'提醒',t:'CN118123456A 年费缴纳期限临近(12-31)',meta:'10-11'},
+ {lv:'good',lvT:'正常',t:'三份周报已生成:靶点情报 / MLM / 专利监控',meta:'10-11'},
+];
+$('#alerts').innerHTML=ALERTS.map(a=>
+ '<div class="alert-row"><span class="pill '+a.lv+'"><span class="d"></span>'+a.lvT+'</span><span class="t">'+a.t+'</span><span class="meta">'+a.meta+'</span></div>'
+).join('');
+
+/* ================= 模块切换(iframe 内嵌,相对链接可直接访问) ================= */
+const MODS={lit:'循证智能体.html',ip:'IP智能体.html',pv:'药物警戒智能体.html'};
+function goMod(m){
+  $$('.nav-tab').forEach(t=>t.classList.toggle('on',t.dataset.mod===m));
+  const ov=$('#overview'), fr=$('#moduleFrame');
+  if(m==='overview'){ov.style.display='';fr.style.display='none';fr.src='about:blank';}
+  else{ov.style.display='none';fr.style.display='';fr.src=MODS[m];}
+}
+$$('.nav-tab').forEach(t=>t.addEventListener('click',()=>goMod(t.dataset.mod)));
+
+/* 日期 */
+$('#welcomeDate').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'})+' · 数据均为虚构演示数据,所有数字实时模拟更新';
+</script>
+</body>
+</html>

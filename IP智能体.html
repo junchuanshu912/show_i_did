@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP智能体 IPMate — 产品原型</title>
+<style>
+/* ============ 设计令牌(与循证智能体同一视觉系统) ============ */
+:root{
+  --bg:#f9f9f7; --surface:#fcfcfb;
+  --ink:#0b0b0b; --ink2:#52514e; --ink3:#898781;
+  --hairline:rgba(11,11,11,.10); --grid:#e1e0d9; --axis:#c3c2b7;
+  --c1:#2a78d6; --c2:#008300; --c3:#e87ba4; --c4:#eda100; --c6:#eb6834; --c7:#4a3aa7;
+  --s250:#86b6ef; --s350:#5598e7; --s400:#3987e5; --s450:#2a78d6; --s500:#256abf; --s600:#184f95;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --radius:10px; --shadow:0 1px 2px rgba(11,11,11,.05), 0 4px 16px rgba(11,11,11,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6;display:flex;overflow:hidden}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;font-size:14px}
+:focus-visible{outline:2px solid var(--c1);outline-offset:2px;border-radius:4px}
+aside{width:224px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--hairline);
+  display:flex;flex-direction:column;padding:18px 12px;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 18px}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#4a3aa7,#2a78d6);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0}
+.brand .name{font-weight:650;font-size:15px}
+.brand .sub{font-size:11px;color:var(--ink3)}
+.nav-group{padding:16px 12px 6px;font-size:11px;color:var(--ink3);letter-spacing:.8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--ink2);
+  font-size:13.5px;transition:background .15s;position:relative;text-align:left;width:100%}
+.nav-item:hover{background:rgba(11,11,11,.04)}
+.nav-item.active{background:#eef1fa;color:var(--ink);font-weight:600}
+.nav-item.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:#4a3aa7}
+.nav-item .ic{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.nav-item .ic svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.side-foot{margin-top:auto;padding:12px;border-top:1px solid var(--hairline);font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:8px}
+.side-foot .dot{width:7px;height:7px;border-radius:50%;background:var(--good)}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--hairline);
+  display:flex;align-items:center;gap:12px;padding:0 20px}
+.topbar .crumb{font-size:13px;color:var(--ink2)} .topbar .crumb b{color:var(--ink);font-weight:600}
+.topbar .grow{flex:1}
+.search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--hairline);
+  border-radius:8px;padding:7px 12px;width:280px;color:var(--ink3);font-size:13px}
+.search input{border:none;background:none;outline:none;flex:1;color:var(--ink);font-size:13px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:550;
+  border:1px solid var(--hairline);background:var(--surface);color:var(--ink);transition:all .15s}
+.btn:hover{background:rgba(11,11,11,.04)}
+.btn.primary{background:#4a3aa7;border-color:#4a3aa7;color:#fff}
+.btn.primary:hover{background:#3c2f8a}
+.btn.sm{padding:4px 10px;font-size:12px;border-radius:7px}
+.avatar{width:32px;height:32px;border-radius:50%;background:#efe6f8;color:#5b3f92;display:flex;align-items:center;
+  justify-content:center;font-weight:600;font-size:13px;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:20px}
+.scene{display:none} .scene.active{display:block}
+.scene-title{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.scene-title h1{font-size:19px;font-weight:650}
+.scene-title .tag{font-size:12px;color:var(--ink3)}
+.scene-desc{color:var(--ink2);font-size:13px;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-h{padding:12px 16px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px}
+.card-h .hint{margin-left:auto;font-size:12px;color:var(--ink3);font-weight:400}
+.card-b{padding:14px 16px}
+.chart-box{position:relative;padding:12px 14px 8px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:1px 9px;border-radius:999px;font-size:12px;
+  border:1px solid var(--hairline);background:rgba(11,11,11,.03);color:var(--ink2);white-space:nowrap}
+.pill .d{width:6px;height:6px;border-radius:50%}
+.pill.good{background:rgba(12,163,12,.08);border-color:rgba(12,163,12,.35);color:#08750b}
+.pill.good .d{background:var(--good)}
+.pill.warn{background:rgba(250,178,25,.12);border-color:rgba(250,178,25,.45);color:#8a5f00}
+.pill.warn .d{background:var(--warn)}
+.pill.serious{background:rgba(236,131,90,.1);border-color:rgba(236,131,90,.4);color:#a14f22}
+.pill.serious .d{background:var(--serious)}
+.pill.crit{background:rgba(208,59,59,.08);border-color:rgba(208,59,59,.35);color:#a82828}
+.pill.crit .d{background:var(--crit)}
+.pill.blue{background:rgba(42,120,214,.08);border-color:rgba(42,120,214,.35);color:#1c5cab}
+.pill.blue .d{background:var(--c1)}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+  padding:9px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:120}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+/* ============ 步骤条 ============ */
+.stepper{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink3)}
+.step .n{width:22px;height:22px;border-radius:50%;border:1px solid var(--axis);display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:600;background:var(--surface)}
+.step.done .n{background:var(--good);border-color:var(--good);color:#fff}
+.step.cur{color:var(--ink);font-weight:600}
+.step.cur .n{background:#4a3aa7;border-color:#4a3aa7;color:#fff}
+.step-sep{width:24px;height:1px;background:var(--axis)}
+
+/* ============ FTO 场景 ============ */
+.fto-wrap{display:grid;grid-template-columns:minmax(260px,300px) minmax(0,1fr) minmax(220px,250px);gap:16px;align-items:start}
+.scheme-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--grid);font-size:12.5px;align-items:flex-start}
+.scheme-item:last-child{border-bottom:none}
+.scheme-item .k{color:var(--ink2);flex-shrink:0;width:52px}
+.scheme-item .v{flex:1}
+.ipc-chip{display:inline-flex;gap:6px;align-items:center;background:var(--bg);border:1px solid var(--hairline);
+  border-radius:7px;padding:3px 9px;font-size:12px;margin:0 6px 6px 0;font-variant-numeric:tabular-nums}
+.ipc-chip .x{color:var(--ink3);cursor:pointer;font-size:13px;line-height:1}
+.ipc-chip .x:hover{color:var(--crit)}
+.kw{display:inline-flex;background:#eef1fa;border:1px solid rgba(74,58,167,.3);color:#3c2f8a;border-radius:7px;
+  padding:3px 9px;font-size:12px;margin:0 6px 6px 0}
+.patent{border:1px solid var(--hairline);border-radius:9px;padding:12px 14px;margin-top:10px;background:var(--surface);
+  cursor:pointer;transition:all .15s;position:relative}
+.patent:hover{border-color:#4a3aa7;box-shadow:0 4px 14px rgba(74,58,167,.12)}
+.patent .pn{font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;color:#3c2f8a}
+.patent .t{font-size:13px;font-weight:550;margin-top:2px;line-height:1.45}
+.patent .meta{display:flex;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap}
+.score-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.score-row .lb{font-size:11px;color:var(--ink3);flex-shrink:0}
+.score-row .track{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.score-row .fill{height:100%;border-radius:3px;background:var(--c1);transition:width .6s}
+.score-row .num{font-size:11.5px;font-weight:650;font-variant-numeric:tabular-nums}
+.filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.filter-row .fchip{font-size:12.5px;padding:4px 12px;border-radius:999px;border:1px solid var(--hairline);color:var(--ink2);background:var(--surface)}
+.filter-row .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.kpi-line{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--grid)}
+.kpi-line:last-child{border-bottom:none}
+.kpi-line .k{color:var(--ink2)}
+.kpi-line .v{font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ============ Claim Chart 抽屉 ============ */
+.overlay{position:fixed;inset:0;background:rgba(11,11,11,.32);opacity:0;pointer-events:none;transition:opacity .25s;z-index:90}
+.overlay.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:92vw;background:var(--bg);z-index:100;
+  box-shadow:-12px 0 40px rgba(11,11,11,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);
+  display:flex;flex-direction:column}
+.drawer.show{transform:translateX(0)}
+.drawer .d-h{padding:16px 20px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;gap:10px}
+.drawer .d-h .close{margin-left:auto;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink3)}
+.drawer .d-h .close:hover{background:rgba(11,11,11,.06);color:var(--ink)}
+.drawer .d-b{flex:1;overflow-y:auto;padding:16px 20px}
+.cc-row{display:grid;grid-template-columns:1fr 1fr 56px;gap:10px;padding:11px 12px;border:1px solid var(--hairline);
+  border-radius:9px;margin-bottom:10px;background:var(--surface);align-items:start;font-size:12.5px}
+.cc-row .cl{color:var(--ink3);font-size:11.5px;margin-bottom:3px}
+.cc-row .cl b{color:var(--ink);font-weight:600;font-size:12.5px}
+.verdict{display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:center;height:100%;font-size:11px;color:var(--ink2)}
+.verdict .ic{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.verdict.hit .ic{background:rgba(208,59,59,.12);color:var(--crit)}
+.verdict.miss .ic{background:rgba(12,163,12,.12);color:var(--good)}
+.verdict.unk .ic{background:rgba(250,178,25,.16);color:#8a5f00}
+.concl{background:#fff;border:1px solid rgba(208,59,59,.4);border-left:4px solid var(--crit);border-radius:10px;padding:13px 15px;margin-top:14px}
+.concl h4{font-size:13.5px;margin-bottom:6px}
+.concl p{font-size:12.5px;color:var(--ink2);line-height:1.7}
+.concl .adv{margin-top:8px;font-size:12.5px;color:var(--ink2);background:var(--bg);border-radius:8px;padding:9px 12px;line-height:1.8}
+.link-span{color:var(--c1);cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.d-f{padding:14px 20px;border-top:1px solid var(--hairline);display:flex;gap:10px;background:var(--surface)}
+
+/* ============ 情报地图 ============ */
+.map-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.heat-wrap{position:relative;padding:14px 16px 4px}
+.heat-grid{display:grid;grid-template-columns:74px repeat(5,1fr);gap:4px}
+.heat-grid .clab{text-align:center;font-size:11px;color:var(--ink3);padding:2px 0 6px}
+.heat-grid .rlab{display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:11.5px;color:var(--ink2)}
+.heat-grid .cell{height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;cursor:pointer;transition:filter .12s}
+.heat-grid .cell:hover{filter:brightness(1.06)}
+.heat-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);padding:8px 16px 12px}
+.heat-legend .grad{width:90px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--s250),var(--s350),var(--s450),var(--s500),var(--s600))}
+.viz-tooltip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;border-radius:8px;padding:8px 11px;
+  font-size:12px;opacity:0;transition:opacity .12s;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.viz-tooltip .tt-h{font-size:11px;color:rgba(255,255,255,.65);margin-bottom:4px}
+.viz-tooltip .tt-row{display:flex;align-items:center;gap:7px;margin-top:2px}
+.viz-tooltip .tt-val{font-weight:650;font-variant-numeric:tabular-nums;margin-left:auto;padding-left:14px}
+.viz-tooltip .tt-lk{width:13px;height:3px;border-radius:2px;flex-shrink:0}
+.axis-t{font-size:11px;fill:var(--ink3)}
+.gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--axis);stroke-width:1}
+.series-line{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.enddot{stroke:var(--surface);stroke-width:2}
+.crosshair{stroke:var(--ink3);stroke-width:1;opacity:.55}
+.viz-legend{display:flex;gap:16px;font-size:12px;color:var(--ink2);padding:8px 2px 2px;flex-wrap:wrap}
+.viz-legend .lg{display:flex;align-items:center;gap:6px}
+.viz-legend .lk{width:16px;height:3px;border-radius:2px}
+.bar-hit{fill:transparent}
+
+/* ============ 监控预警 ============ */
+.alert-item{display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--hairline);align-items:flex-start}
+.alert-item:last-child{border-bottom:none}
+.alert-item .ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.alert-item .ico.crit{background:rgba(208,59,59,.1)}
+.alert-item .ico.serious{background:rgba(236,131,90,.12)}
+.alert-item .ico.warn{background:rgba(250,178,25,.15)}
+.alert-item .t{font-size:13px;font-weight:550}
+.alert-item .s{font-size:12px;color:var(--ink2);margin-top:2px}
+.alert-item .time{margin-left:auto;font-size:11px;color:var(--ink3);white-space:nowrap}
+.tl-scroll{overflow-x:auto;padding:6px 2px 4px}
+.timeline{display:flex;gap:0;min-width:720px;position:relative;padding:12px 0 0}
+.tl-year{flex:1;position:relative;padding-top:38px;text-align:center}
+.tl-year::before{content:"";position:absolute;top:23px;left:0;right:0;height:2px;background:var(--grid)}
+.tl-year .yr{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:12px;font-weight:650;color:var(--ink2);white-space:nowrap}
+.tl-year .dot{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;
+  background:var(--surface);border:3px solid var(--c1)}
+.tl-year .ev{margin:0 6px;padding:9px 10px;background:var(--surface);border:1px solid var(--hairline);border-radius:9px;
+  font-size:11.5px;line-height:1.5;color:var(--ink2);text-align:left;cursor:pointer;transition:all .15s}
+.tl-year .ev:hover{border-color:var(--c1)}
+.tl-year .ev b{display:block;color:var(--ink);font-size:12px;margin-bottom:2px}
+.tl-year .ev .tag{margin-top:5px;display:inline-block}
+
+/* ============ 报告预览弹层 ============ */
+.modal{position:fixed;inset:0;background:rgba(11,11,11,.32);z-index:110;display:none;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal .box{width:640px;max-width:92vw;max-height:84vh;overflow-y:auto;background:var(--surface);border-radius:14px;
+  box-shadow:0 24px 80px rgba(11,11,11,.3)}
+.modal .m-h{padding:16px 22px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:var(--surface)}
+.modal .m-b{padding:18px 22px}
+.report-sec{padding:10px 14px;border:1px solid var(--hairline);border-radius:9px;margin-bottom:10px;font-size:12.5px;color:var(--ink2)}
+.report-sec b{color:var(--ink);font-size:13px;display:block;margin-bottom:4px}
+/* ============ 新增:欢迎引导 + 醒目指标 + 体验提示 ============ */
+.hero-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.hero-item{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:13px 16px 12px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.hero-item::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:#4a3aa7}
+.hero-item .v{font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.2}
+.hero-item .v .u{font-size:13px;color:var(--ink3);font-weight:500;margin-left:2px}
+.hero-item .l{font-size:12px;color:var(--ink2);margin-top:3px}
+.hero-item .d{font-size:11px;color:var(--ink3);margin-top:1px}
+.howto{display:flex;gap:4px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-bottom:14px;
+  background:rgba(74,58,167,.05);border:1px dashed rgba(74,58,167,.4);border-radius:9px;padding:8px 12px}
+.howto .hd{font-weight:650;color:var(--ink);margin-right:4px}
+.howto b{background:#4a3aa7;color:#fff;border-radius:50%;min-width:18px;height:18px;display:inline-flex;align-items:center;
+  justify-content:center;font-size:11px;margin:0 2px 0 8px;padding:0 4px;box-sizing:border-box}
+.howto i{font-style:normal;color:var(--ink2)}
+.guide-overlay{position:fixed;inset:0;background:rgba(11,11,11,.48);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.guide-overlay.hide{display:none}
+.guide-card{width:660px;max-width:94vw;max-height:88vh;overflow-y:auto;background:var(--surface);border-radius:16px;
+  box-shadow:0 24px 80px rgba(0,0,0,.4);padding:26px 28px 22px}
+.guide-card .g-top{display:flex;align-items:center;gap:12px}
+.guide-card .g-logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#4a3aa7,#2a78d6);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0}
+.guide-card h2{font-size:17px;font-weight:700}
+.guide-card .g-sub{font-size:13px;color:var(--ink2);margin-top:10px;line-height:1.8}
+.guide-card .g-sub b{color:var(--ink)}
+.g-scenes{display:flex;flex-direction:column;gap:8px;margin:16px 0 10px}
+.g-scene{display:flex;gap:12px;align-items:center;text-align:left;padding:10px 14px;border:1px solid var(--hairline);
+  border-radius:10px;background:var(--bg);transition:all .15s;width:100%}
+.g-scene:hover{border-color:#4a3aa7;background:#eef1fa}
+.g-scene .num{width:26px;height:26px;border-radius:50%;background:#4a3aa7;color:#fff;display:flex;align-items:center;
+  justify-content:center;font-weight:650;font-size:13px;flex-shrink:0}
+.g-scene .t b{font-size:13.5px}
+.g-scene .t small{display:block;color:var(--ink2);font-size:12px;margin-top:1px}
+.g-foot{display:flex;align-items:center;gap:14px;margin-top:8px;flex-wrap:wrap}
+.g-tip{flex:1;font-size:12px;color:var(--ink3);min-width:200px}
+/* ============ 专利库数据看板 ============ */
+.kb-feed-item{padding:9px 14px;border-bottom:1px solid var(--hairline);font-size:12px}
+.kb-feed-item:last-child{border-bottom:none}
+.kb-feed-item .t{font-weight:550;font-size:12.5px;line-height:1.45}
+.kb-feed-item .j{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+.kb-feed-item .time{font-size:11px;color:var(--ink3)}
+.pipe-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--grid);font-size:12.5px}
+.pipe-row:last-child{border-bottom:none}
+.pipe-row b{font-weight:600;white-space:nowrap}
+.pipe-row .hint{color:var(--ink3);font-size:11.5px}
+.pipe-row .v{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pdot.real{background:var(--good);box-shadow:0 0 0 3px rgba(12,163,12,.15)}
+.pdot.late{background:var(--warn)}
+.pub-item{padding:9px 14px;border-bottom:1px solid var(--hairline);font-size:12px}
+.pub-item:last-child{border-bottom:none}
+.pub-item .no{font-weight:650;font-variant-numeric:tabular-nums;color:#3c2f8a}
+.pub-item .t{font-size:12px;color:var(--ink2);margin-top:2px;line-height:1.45}
+.donut-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 10px 16px}
+.donut-svg-wrap{position:relative}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.donut-center .v{font-size:19px;font-weight:700;letter-spacing:-.3px;line-height:1.2}
+.donut-center .l{font-size:11px;color:var(--ink3)}
+.donut-legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;font-size:11.5px;color:var(--ink2);padding:0 4px}
+.donut-legend .lg{display:flex;align-items:center;gap:5px}
+.donut-legend .sw{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.kb-note{font-size:12px;color:var(--ink3);line-height:1.7}
+.step{cursor:pointer}
+.slr-nav{display:flex;gap:10px;margin-top:14px;justify-content:flex-end}
+.report-struct{padding:4px 0}
+.report-struct .rline{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px dashed var(--grid);font-size:13px}
+.report-struct .rline:last-child{border-bottom:none}
+/* 订阅/领域标签(补齐 Q1 同款) + 排查项目列表 */
+.subs{display:flex;gap:8px;flex-wrap:wrap}
+.sub{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;padding:5px 13px;border-radius:999px;
+  border:1px solid var(--hairline);background:var(--surface);color:var(--ink2);transition:all .15s;position:relative}
+.sub.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:550}
+.sub:hover{border-color:var(--ink)}
+.sub .sub-x{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:15px;height:15px;border-radius:50%;
+  background:rgba(11,11,11,.08);color:var(--ink3);font-size:10px;line-height:15px;text-align:center;opacity:0;transition:all .15s}
+.sub:hover .sub-x{opacity:1}
+.sub .sub-x:hover{background:rgba(208,59,59,.18);color:var(--crit)}
+.sub.on .sub-x{background:rgba(255,255,255,.28);color:#fff;opacity:.95}
+.sub.hasx{padding-right:26px}
+.fto-item{display:flex;align-items:center;gap:14px;padding:13px 16px;border:1px solid var(--hairline);
+  border-radius:10px;margin-top:10px;background:var(--surface);cursor:pointer;transition:all .15s}
+.fto-item:hover{border-color:#4a3aa7;box-shadow:0 4px 14px rgba(74,58,167,.12)}
+.fto-item .grow1{flex:1;min-width:0}
+.fto-item .nm{font-weight:650;font-size:13.5px}
+.fto-item .sub-i{font-size:12px;color:var(--ink3);margin-top:2px}
+/* 弹窗输入区样式(补齐) */
+.modal .row-in{display:flex;gap:10px;margin-top:14px}
+.modal input{flex:1;border:1px solid var(--hairline);border-radius:8px;padding:8px 12px;background:var(--bg);outline:none;min-width:0}
+.modal input:focus{border-color:#4a3aa7;background:#fff}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <div class="logo">IP</div>
+    <div><div class="name">IP智能体</div><div class="sub">产品演示原型</div></div>
+  </div>
+  <div class="nav-group">智能体</div>
+  <button class="nav-item active" data-scene="fto">
+    <span class="ic"><svg><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>FTO 工作台
+  </button>
+  <button class="nav-item" data-scene="map">
+    <span class="ic"><svg><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/><path d="M10 7h4M7 10v4M17 10v4"/></svg></span>情报地图
+  </button>
+  <button class="nav-item" data-scene="alert">
+    <span class="ic"><svg><path d="M12 4l8 14H4l8-14z"/><path d="M12 10v4M12 17.2v.1"/></svg></span>监控预警
+  </button>
+  <div class="nav-group">数据底座</div>
+  <button class="nav-item" data-scene="patlib">
+    <span class="ic"><svg><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg></span>专利库 · 1.9亿件
+  </button>
+  <a class="nav-item" href="index.html" style="text-decoration:none"><span class="ic"><svg><path d="M4 10l8-7 8 7M6 8.5V20h12V8.5"/></svg></span>返回作品集首页</a>
+  <div class="side-foot"><span class="dot"></span>日更管道正常 · 今日入库 24,318 件</div>
+</aside>
+
+<main>
+  <div class="topbar">
+    <span class="crumb">IPMate / <b id="crumbName">FTO 工作台</b></span>
+    <span class="grow"></span>
+    <div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="检索:公开号 / 申请人 / 靶点 / 药品…"></div>
+    <button class="btn primary" onclick="toast('已新建 FTO 分析任务(演示)')">新建 FTO 分析</button>
+    <button class="btn sm" id="btnGuide" title="查看使用说明" style="width:30px;justify-content:center;font-weight:700">?</button>
+    <div class="avatar">王</div>
+  </div>
+
+  <div class="content">
+
+  <!-- ================= FTO 工作台 ================= -->
+  <section class="scene active" id="scene-fto">
+    <div class="scene-title"><h1>FTO 工作台</h1><span class="tag">召回优先 · 每个判定附原文定位 · 演示数据虚构</span></div>
+    <div class="scene-desc" id="ftoProjDesc">选择一个排查项目,或新建排查;点击项目进入五步工作区。</div>
+    <div class="hero-strip" id="ftoHero">
+      <div class="hero-item"><div class="v">1,284<span class="u">件</span></div><div class="l">全球检索命中专利</div><div class="d">AI 已完成初筛</div></div>
+      <div class="hero-item"><div class="v">6<span class="u">件</span></div><div class="l">重点比对专利</div><div class="d">点击任意一件查看比对表</div></div>
+      <div class="hero-item"><div class="v">94.2%</div><div class="l">检索覆盖度</div><div class="d">该找到的基本都找到了</div></div>
+      <div class="hero-item"><div class="v">2–4<span class="u">周</span>→<span style="font-size:18px">3–5</span><span class="u">天</span></div><div class="l">排查周期对比</div><div class="d">原来外包律所,现在自己做</div></div>
+    </div>
+    <div class="howto" id="ftoHowto"><span class="hd">怎么体验</span><b>①</b><i>先看排查项目列表,点一个进入</i><b>②</b><i>在五步中任意走动;第 3 步点专利打开比对抽屉</i><b>③</b><i>点「+ 新建排查」从第 1 步开始</i></div>
+
+    <div id="ftoListView"></div>
+    <div id="ftoBackBar" style="display:flex;align-items:center;gap:10px;margin-bottom:12px"></div>
+
+    <div class="stepper" id="ftoStepper"></div>
+
+    <div class="fto-wrap" id="ftoWrap">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="card-h">技术方案 <span class="hint">5 要素</span></div>
+          <div class="card-b" style="padding-top:8px">
+            <div class="scheme-item"><span class="k">化合物</span><span class="v">四环并嘧啶酮类通式(口服 G12D 抑制剂)</span></div>
+            <div class="scheme-item"><span class="k">晶型</span><span class="v">晶型 B(自有 PXRD 谱)</span></div>
+            <div class="scheme-item"><span class="k">盐型</span><span class="v">游离碱</span></div>
+            <div class="scheme-item"><span class="k">用途</span><span class="v">胰腺癌、结直肠癌(G12D 突变)</span></div>
+            <div class="scheme-item"><span class="k">工艺</span><span class="v">自有路线(路线 2)</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h">检索式 <span class="hint">AI 生成 · 可编辑</span></div>
+          <div class="card-b" style="padding-top:10px">
+            <div style="font-size:11px;color:var(--ink3);margin-bottom:6px">IPC / CPC 分类号</div>
+            <span class="ipc-chip">A61K 31/519<span class="x" onclick="toast('已移除分类号(演示)')">×</span></span>
+            <span class="ipc-chip">C07D 487/04<span class="x" onclick="toast('已移除分类号(演示)')">×</span></span>
+            <span class="ipc-chip">A61P 35/00<span class="x" onclick="toast('已移除分类号(演示)')">×</span></span>
+            <div style="font-size:11px;color:var(--ink3);margin:8px 0 6px">关键词 / 同义词(含 Markush 通式语义)</div>
+            <span class="kw">KRAS G12D</span><span class="kw">抑制剂</span><span class="kw">tetracyclic</span><span class="kw">pancreatic cancer</span>
+            <button class="btn sm primary" style="margin-top:6px" onclick="rerunSearch()">重新运行检索</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          命中专利 · 重点比对清单
+          <span class="hint" id="patHint">点击任一专利查看 Claim Chart</span>
+        </div>
+        <div class="card-b" style="padding-top:10px">
+          <div class="filter-row">
+            <button class="fchip on" data-f="all">全部 <span id="cAll">6</span></button>
+            <button class="fchip" data-f="high">高风险</button>
+            <button class="fchip" data-f="mid">中风险</button>
+            <button class="fchip" data-f="low">低风险</button>
+            <span class="hint" style="margin-left:auto;font-size:12px;color:var(--ink3)">召回率 94.2% · 精确率 61%</span>
+          </div>
+          <div id="patList"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="card-h">分析统计</div>
+          <div class="card-b">
+            <div class="kpi-line"><span class="k">检索命中</span><span class="v">1,284</span></div>
+            <div class="kpi-line"><span class="k">AI 初筛通过</span><span class="v">36</span></div>
+            <div class="kpi-line"><span class="k">重点比对</span><span class="v">6</span></div>
+            <div class="kpi-line"><span class="k">检索召回率</span><span class="v">94.2%</span></div>
+            <div class="kpi-line"><span class="k">比对一致性(vs 代理人)</span><span class="v">91%</span></div>
+            <button class="btn primary" style="width:100%;margin-top:12px;justify-content:center" onclick="openReport()">生成 FTO 报告初稿</button>
+            <button class="btn" style="width:100%;margin-top:8px;justify-content:center" onclick="goFtoStep(4)">进入第 4 步:风险结论 →</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h">红线提示</div>
+          <div class="card-b" style="font-size:12.5px;color:var(--ink2);line-height:1.8">
+            本产品输出为<b>风险提示与检索辅助</b>,不构成法律意见;FTO 正式结论须由执业专利律师审定签发。低置信判定已强制进入人工复核队列。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第 1/2/4/5 步内容(第 3 步用上方工作区) -->
+    <div id="ftoExtraBody"></div>
+  </section>
+
+  <!-- ================= 情报地图 ================= -->
+  <section class="scene" id="scene-map">
+    <div class="scene-title"><h1>专利情报地图</h1><span class="tag">技术功效矩阵 · 研发导航 · 演示数据虚构</span></div>
+    <div class="scene-desc">领域:<b id="mapFieldDesc">KRAS G12D 抑制剂</b> — 切换领域后,本页所有数据跟着变。</div>
+    <div class="hero-strip">
+      <div class="hero-item"><div class="v" id="heroPatCnt">2,318<span class="u">件</span></div><div class="l">本领域专利(近 3 年)</div><div class="d">随领域与过滤器变化</div></div>
+      <div class="hero-item"><div class="v" id="heroPatGrow">+18%</div><div class="l">年申请增速</div><div class="d">赛道正在升温</div></div>
+      <div class="hero-item"><div class="v" id="heroPatOpp">3<span class="u">个</span></div><div class="l">机会窗口</div><div class="d">矩阵里的空白高增长格</div></div>
+      <div class="hero-item"><div class="v" id="heroPatComp">6<span class="u">家</span></div><div class="l">主要申请人</div><div class="d">右上角柱状图可看排名</div></div>
+    </div>
+    <div class="howto"><span class="hd">怎么体验</span><b>①</b><i>点领域标签切换,热力图、排名、趋势、机会清单一起变</i><b>②</b><i>切时间/地区过滤器</i><b>③</b><i>看底部"机会清单"的空白方向与免费技术</i></div>
+
+    <div class="subs" id="fieldRow" style="margin-bottom:14px"></div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-b" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding-top:12px;padding-bottom:12px">
+        <span style="font-size:12.5px;color:var(--ink2)">时间范围</span>
+        <button class="fchip" data-t="1y">近 1 年</button>
+        <button class="fchip on" data-t="3y">近 3 年</button>
+        <button class="fchip" data-t="5y">近 5 年</button>
+        <span style="font-size:12.5px;color:var(--ink2);margin-left:14px">地区</span>
+        <select id="regionSel" style="border:1px solid var(--hairline);border-radius:8px;padding:6px 12px;background:var(--surface)">
+          <option value="all">全球 + 中国</option>
+          <option value="global">仅全球</option>
+          <option value="cn">仅中国</option>
+          <option value="us">仅美国</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="map-wrap">
+      <div class="card viz-card">
+        <div class="card-h">技术功效矩阵 <span class="hint">专利数 · 悬停查看</span></div>
+        <div class="heat-wrap" id="heatWrap"></div>
+        <div class="heat-legend"><span>少</span><span class="grad"></span><span>多</span><span style="margin-left:12px">空白格 = 机会窗口(低密度高增长)</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card viz-card">
+          <div class="card-h">申请人排名 <span class="hint" id="barHint">本领域 · 随过滤器</span></div>
+          <div class="chart-box"><svg id="barChart" width="100%" height="190" role="img" aria-label="申请人专利数柱状图"></svg></div>
+        </div>
+        <div class="card viz-card">
+          <div class="card-h">申请趋势 <span class="hint" id="trendHint">近 3 年</span></div>
+          <div class="chart-box"><svg id="lineChart" width="100%" height="170" role="img" aria-label="专利申请趋势折线图"></svg>
+            <div class="viz-legend" id="lineLegend"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 机会清单:进攻型能力 -->
+    <div class="card" id="oppCard">
+      <div class="card-h">本领域机会清单 <span class="hint">进攻能力:找方向 · 白拿免费技术</span></div>
+      <div class="card-b" id="oppBody"></div>
+    </div>
+  </section>
+
+  <!-- ================= 监控预警 ================= -->
+  <section class="scene" id="scene-alert">
+    <div class="scene-title"><h1>监控与预警</h1><span class="tag">法律状态引擎 · 到期日历 · 演示数据虚构</span></div>
+    <div class="scene-desc">法律状态预警按订阅推送;下方到期日历为全局免费工具。</div>
+    <div class="howto"><span class="hd">怎么体验</span><b>①</b><i>点订阅标签切换,预警列表跟着变</i><b>②</b><i>点标签上的 × 删除订阅(需确认)</i><b>③</b><i>点到期日历卡片展开详情</i></div>
+    <div class="subs" id="alertSubsRow" style="margin-bottom:4px"></div>
+    <div class="hero-strip">
+      <div class="hero-item"><div class="v">5<span class="u">项</span></div><div class="l">监控订阅</div><div class="d">靶点、企业、技术主题</div></div>
+      <div class="hero-item"><div class="v">5<span class="u">条</span></div><div class="l">本周法律状态预警</div><div class="d">红色=紧急,橙=重要</div></div>
+      <div class="hero-item"><div class="v">99.2%</div><div class="l">法律状态准确率</div><div class="d">多来源交叉核对</div></div>
+      <div class="hero-item"><div class="v">2026–2032</div><div class="l">专利到期日历跨度</div><div class="d">橙皮书+中国专利登记</div></div>
+    </div>
+    <div class="howto"><span class="hd">怎么体验</span><b>①</b><i>看左侧法律状态预警</i><b>②</b><i>点右侧到期日历上的卡片</i><b>③</b><i>切换左侧菜单看其他场景</i></div>
+
+    <div class="map-wrap">
+      <div class="card">
+        <div class="card-h">法律状态预警 <span class="hint">最近 7 天</span></div>
+        <div id="alertList"></div>
+      </div>
+      <div class="card">
+        <div class="card-h">药品专利到期日历 <span class="hint">橙皮书 + 中国专利链接平台</span></div>
+        <div class="card-b" style="padding:10px 12px">
+          <div class="tl-scroll"><div class="timeline" id="timeline"></div></div>
+          <div style="margin-top:10px;font-size:12px;color:var(--ink3)">提示:到期日≠市场独占结束,PTE/SPC、儿科独占与诉讼和解可能延展独占期。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 专利库数据看板 ================= -->
+  <section class="scene" id="scene-patlib">
+    <div class="scene-title"><h1>专利库数据看板</h1><span class="tag">BA 看板 · 数据底座 · 演示数据虚构</span></div>
+    <div class="scene-desc">排查、情报、评估能力的背后,是 1.9 亿件全球专利组成的数据底座。本页展示它的规模、来源、法律状态与关联能力——注意"公有领域"卡片:那是可以免费使用的进攻机会。</div>
+    <div class="howto"><span class="hd">怎么体验</span><b>①</b><i>看实时入库流水与管道状态</i><b>②</b><i>悬停环形图与图表看数据</i><b>③</b><i>看右下角"今日进入公有领域"的免费技术</i></div>
+
+    <div class="hero-strip">
+      <div class="hero-item"><div class="v">1.9<span class="u">亿件</span></div><div class="l">全球专利总量</div><div class="d" id="patTodayD">今日新增 24,318 件</div></div>
+      <div class="hero-item"><div class="v">174<span class="u">个</span></div><div class="l">覆盖国家 / 地区</div><div class="d">五大专利局全接入</div></div>
+      <div class="hero-item"><div class="v">99.2%</div><div class="l">法律状态准确率</div><div class="d">多来源交叉核对</div></div>
+      <div class="hero-item"><div class="v">86<span class="u">万条</span></div><div class="l">药品-专利关联</div><div class="d">与公司药品库对齐率 96.2%</div></div>
+      <div class="hero-item"><div class="v">日更</div><div class="l">更新管道</div><div class="d">每日 03:00 全量增量入库</div></div>
+    </div>
+
+    <div class="charts-row" style="grid-template-columns:1.1fr 0.9fr 1fr">
+      <div class="card">
+        <div class="card-h">实时入库流水 <span class="hint">刚刚编入专利库的公开文本</span></div>
+        <div id="patLiveFeed" style="min-height:238px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h">数据管道状态</div>
+        <div class="card-b" id="patPipe"></div>
+      </div>
+      <div class="card">
+        <div class="card-h">专利类型占比 <span class="hint">环形图 · 悬停看分段</span></div>
+        <div class="card-b" id="patDonutType"></div>
+      </div>
+    </div>
+
+    <div class="charts-row" style="grid-template-columns:1.35fr 1fr">
+      <div class="card viz-card">
+        <div class="card-h">近 10 年全球医药专利申请量 <span class="hint">万件</span></div>
+        <div class="chart-box"><svg id="patTrend" width="100%" height="210" role="img" aria-label="近十年医药专利申请量折线图"></svg></div>
+      </div>
+      <div class="card viz-card">
+        <div class="card-h">申请人来源国分布 <span class="hint">万件 · 前 6 位</span></div>
+        <div class="chart-box"><svg id="patCountry" width="100%" height="210" role="img" aria-label="申请人来源国分布条形图"></svg></div>
+      </div>
+    </div>
+
+    <div class="charts-row" style="grid-template-columns:0.9fr 1.4fr 1fr;margin-bottom:0">
+      <div class="card">
+        <div class="card-h">法律状态占比 <span class="hint">环形图 · 悬停看分段</span></div>
+        <div class="card-b" id="patDonutStatus"></div>
+      </div>
+      <div class="card">
+        <div class="card-h">五元图谱关联 <span class="hint">专利—药品—靶点—适应症—企业</span></div>
+        <div class="card-b">
+          <div class="kpi-line"><span class="k">专利-药品关联</span><span class="v">86 万条 · 对齐率 96.2%</span></div>
+          <div class="kpi-line"><span class="k">专利-靶点关联</span><span class="v">42 万条</span></div>
+          <div class="kpi-line"><span class="k">专利-适应症关联</span><span class="v">128 万条</span></div>
+          <div class="kpi-line"><span class="k">专利-企业关联</span><span class="v">310 万条</span></div>
+          <div class="kb-note" style="margin-top:10px">正是因为有这张关联网,排查报告里才能"点一件专利,看到它保护的是哪个药、这个药卖了多少钱"——这是纯专利工具做不到的。</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h">今日进入公有领域 <span class="hint">到期 / 失效 · 可免费使用</span></div>
+        <div id="patPublic"></div>
+      </div>
+    </div>
+  </section>
+
+  </div>
+</main>
+
+<!-- Claim Chart 抽屉 -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="d-h">
+    <span class="pill crit" id="dRisk"><span class="d"></span>高风险</span>
+    <b id="dTitle" style="font-size:14px">US11987654B2</b>
+    <button class="close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="d-b" id="dBody"></div>
+  <div class="d-f">
+    <button class="btn" style="flex:1;justify-content:center" onclick="closeDrawer()">退回人工复核</button>
+    <button class="btn primary" style="flex:2;justify-content:center" onclick="acceptCC()">采纳分析 → 进入风险结论</button>
+  </div>
+</div>
+
+<!-- FTO 报告预览 -->
+<div class="modal" id="reportModal">
+  <div class="box">
+    <div class="m-h"><b>FTO 报告初稿预览</b><span style="margin-left:auto;font-size:12px;color:var(--ink3)">律师审定后签发正式版</span><button class="btn sm" onclick="closeReport()">关闭</button></div>
+    <div class="m-b">
+      <div class="report-sec"><b>1. 执行摘要</b>核心化合物落入 US11987654B2 独立权利要求 1(通式)及权利要求 8(用途);晶型 B / 游离碱形态规避从属权利要求 3、5;联合给药权利要求 12 不构成障碍。总体风险:高,建议启动规避设计与许可评估。</div>
+      <div class="report-sec"><b>2. 检索策略</b>IPC/CPC:A61K 31/519、C07D 487/04、A61P 35/00;关键词 4 组含同义词;语义检索兜底;检索日 2026-10-12;命中 1,284 件,初筛 36 件,重点比对 6 件。</div>
+      <div class="report-sec"><b>3. 重点专利比对摘要</b>US11987654B2(高)、CN117800754A(中)、WO2024/012345 A1(中)、US11898765B2(低,晶型)、EP4489123A1(低,联合用药)、CN118123456A(低,工艺)。</div>
+      <div class="report-sec"><b>4. Claim Chart</b>5 项技术特征 × 权利要求要素逐项比对,2 项落入、3 项未落入;所有判定附原文定位,置信度均 > 90%。</div>
+      <div class="report-sec"><b>5. 风险结论与建议</b>① 晶型 B + 游离碱可规避从属权利要求,但通式与用途落入独立权利要求 → 仍构成侵权风险;② 建议:a. 启动对 US11987654B2 的现有技术无效检索(转无效检索智能体);b. 评估与 Mirati 许可谈判;c. 评估适应症差异化路径。</div>
+      <div class="report-sec"><b>6. 免责声明与审计轨迹</b>本报告由 AI 辅助生成,共 42 个判定步骤,全部可追溯至专利原文段落;正式法律意见以执业律师签发文件为准。</div>
+      <button class="btn primary" style="width:100%;justify-content:center" onclick="toast('FTO 报告初稿已生成并导出 Word(演示)')">导出报告初稿(Word)</button>
+    </div>
+  </div>
+</div>
+
+<!-- 欢迎引导层:说明这是什么、怎么点 -->
+<div class="guide-overlay" id="guide">
+  <div class="guide-card">
+    <div class="g-top">
+      <div class="g-logo">IP</div>
+      <h2>欢迎体验「IP智能体」演示原型</h2>
+    </div>
+    <p class="g-sub">这是<b>产品交互演示原型</b>,不是正式系统,页面数据均为虚构演示数据,用于展示产品设计思路与交互细节。本原型演示产品里的 <b>4 个页面</b>,用左侧菜单切换;每个页面顶部有「怎么体验」提示,照着点就行。</p>
+    <div class="g-scenes">
+      <button class="g-scene" data-scene="fto"><span class="num">1</span><span class="t"><b>专利排查工作台(核心)</b><small>先看排查项目列表 → 点项目进入五步:方案→检索式→比对→风险结论→报告</small></span></button>
+      <button class="g-scene" data-scene="map"><span class="num">2</span><span class="t"><b>情报地图</b><small>切领域标签(数据全联动)+ 时间/地区过滤 + 底部机会清单</small></span></button>
+      <button class="g-scene" data-scene="alert"><span class="num">3</span><span class="t"><b>监控预警</b><small>切换/增删预警订阅 → 看法律状态预警和专利到期日历</small></span></button>
+      <button class="g-scene" data-scene="patlib"><span class="num">4</span><span class="t"><b>专利库数据看板</b><small>看 1.9 亿件专利的规模、来源、法律状态与"可免费使用的公有领域专利"</small></span></button>
+    </div>
+    <div class="g-foot">
+      <span class="g-tip">建议按 1 → 2 → 3 → 4 的顺序点一遍,页面上的按钮都可以点。</span>
+      <button class="btn primary" onclick="closeGuide()">开始体验</button>
+    </div>
+  </div>
+</div>
+
+<!-- 删除预警订阅确认 -->
+<div class="modal" id="alertDelModal" onclick="if(event.target===this)closeAlertDel()">
+  <div class="mbox">
+    <div class="mh">删除订阅</div>
+    <div class="mb">确定要删除订阅「<span class="nm" id="alertDelName"></span>」吗?<br>删除后将停止对该订阅的法律状态监测,历史预警记录会保留。</div>
+    <div class="mf">
+      <button class="btn" onclick="closeAlertDel()">取消</button>
+      <button class="btn primary" id="alertDelOk">确认删除</button>
+    </div>
+  </div>
+</div>
+<!-- 新建排查 -->
+<div class="modal" id="ftoNewModal" onclick="if(event.target===this)closeFtoNew()">
+  <div class="mbox">
+    <div class="mh">新建排查</div>
+    <div class="mb">输入排查项目名称(如化合物代号、适应症方向),创建后从"技术方案输入"开始五步排查。</div>
+    <div class="row-in">
+      <input id="ftoNewName" placeholder="例如:某 KRAS G12C 抑制剂 · 某双抗 ADC">
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeFtoNew()">取消</button>
+      <button class="btn primary" id="ftoNewOk">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建预警订阅 -->
+<div class="modal" id="alertNewModal" onclick="if(event.target===this)closeAlertNew()">
+  <div class="mbox">
+    <div class="mh">新建订阅</div>
+    <div class="mb">输入要监测的企业、靶点或技术主题,保存后按日推送法律状态变化与新增公开专利。</div>
+    <div class="row-in">
+      <input id="alertNewName" placeholder="例如:某创新药企、KRAS G12C、微针递送">
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeAlertNew()">取消</button>
+      <button class="btn primary" id="alertNewOk">添加</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================= 工具 ================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let toastTimer;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+/* tooltip 定位:统一换算到最近的定位容器(避免坐标系错位) */
+function svgPoint(svg,e){const r=svg.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function placeTt(tt,cont,el,dx,dy){
+  const c=cont.getBoundingClientRect(), r=el.getBoundingClientRect();
+  tt.style.left=Math.max(4,Math.min(r.left-c.left+dx,c.width-158))+'px';
+  tt.style.top=Math.max(2,Math.min(r.top-c.top+dy,c.height-36))+'px';
+  tt.style.opacity=1;
+}
+
+/* ================= 场景切换 ================= */
+$$('.nav-item').forEach(b=>b.addEventListener('click',()=>{
+  const sc=b.dataset.scene; if(!sc) return;
+  $$('.nav-item').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  $$('.scene').forEach(s=>s.classList.remove('active')); $('#scene-'+sc).classList.add('active');
+  $('#crumbName').textContent=b.textContent.trim();
+}));
+
+/* ================= 欢迎引导 ================= */
+function closeGuide(){$('#guide').classList.add('hide');}
+$('#btnGuide').addEventListener('click',()=>{$('#guide').classList.remove('hide');});
+$$('#guide .g-scene').forEach(b=>b.addEventListener('click',()=>{
+  const sc=b.dataset.scene;
+  $$('.nav-item').forEach(x=>x.classList.remove('active'));
+  $$('.nav-item').find(x=>x.dataset.scene===sc)?.classList.add('active');
+  $$('.scene').forEach(s=>s.classList.remove('active')); $('#scene-'+sc).classList.add('active');
+  $('#crumbName').textContent=$$('.nav-item').find(x=>x.dataset.scene===sc)?.textContent.trim()||'';
+  closeGuide();
+}));
+
+/* ================= FTO 数据 ================= */
+const PATENTS=[
+ {pn:'US11987654B2',t:'KRAS G12D inhibitors and methods of use',app:'Mirati(百时美施贵宝)',score:96,risk:'high',status:'授权维持',exp:'2042-03',riskT:'高风险',riskP:'crit'},
+ {pn:'CN117800754A',t:'嘧啶并吡啶类化合物及其在 G12D 突变肿瘤治疗中的应用',app:'益方生物',score:88,risk:'mid',status:'实质审查中',exp:'—',riskT:'中风险',riskP:'serious'},
+ {pn:'WO2024/012345 A1',t:'Tetracyclic compounds as inhibitors of KRAS G12D',app:'Revolution Medicines',score:84,risk:'mid',status:'进入国家阶段',exp:'—',riskT:'中风险',riskP:'serious'},
+ {pn:'US11898765B2',t:'Crystalline forms of a KRAS G12D inhibitor',app:'礼来',score:72,risk:'low',status:'授权维持',exp:'2041-11',riskT:'低风险',riskP:'good'},
+ {pn:'EP4489123A1',t:'Combination therapy comprising a G12D inhibitor and a SHP2 inhibitor',app:'恒瑞医药',score:68,risk:'low',status:'审查中',exp:'—',riskT:'低风险',riskP:'good'},
+ {pn:'CN118123456A',t:'一种 KRAS G12D 抑制剂中间体的制备方法',app:'凯莱英',score:55,risk:'low',status:'公开',exp:'—',riskT:'低风险',riskP:'good'},
+];
+const CC={
+ 'US11987654B2':{title:'KRAS G12D inhibitors and methods of use',riskP:'crit',riskT:'高风险',concl:'独立权利要求 1(通式)与权利要求 8(用途)被判定落入,构成较高侵权风险;从属权利要求 3(晶型 A)、5(盐酸盐)、12(联合给药)未落入,存在规避空间。',
+  adv:'① 晶型 B + 游离碱形态可规避从属权利要求,但无法规避通式与用途——建议启动对 US11987654B2 的现有技术无效检索;② 评估与 Mirati 的许可谈判窗口(该专利为竞品核心资产,谈判成本高);③ 评估适应症差异化(先开发结直肠癌 vs 胰腺癌的证据强弱)。',
+  rows:[
+   {cl:'独立权利要求 1',txt:'通式化合物(Markush 通式 I)',mine:'四环并嘧啶酮通式',v:'hit',conf:'96%'},
+   {cl:'权利要求 3',txt:'晶型 A(PXRD 2θ=8.2°, 12.4°)',mine:'晶型 B',v:'miss',conf:'94%'},
+   {cl:'权利要求 5',txt:'盐酸盐',mine:'游离碱',v:'miss',conf:'97%'},
+   {cl:'权利要求 8',txt:'治疗胰腺癌的用途',mine:'胰腺癌、结直肠癌',v:'hit',conf:'91%'},
+   {cl:'权利要求 12',txt:'与 SHP2 抑制剂联合给药方案',mine:'单药方案',v:'miss',conf:'93%'},
+  ]},
+ 'CN117800754A':{title:'嘧啶并吡啶类化合物及其在 G12D 突变肿瘤治疗中的应用',riskP:'serious',riskT:'中风险',concl:'权利要求 1 通式覆盖范围与我方骨架存在交叠可能,当前处于实质审查阶段,授权范围未定,建议持续跟踪审查意见。',
+  adv:'① 监控该申请审查历史(审查意见已质疑权利要求 1 创造性,授权范围可能收窄);② 若授权后覆盖我方骨架,评估提公众意见或无效。',
+  rows:[
+   {cl:'权利要求 1',txt:'嘧啶并吡啶类通式',mine:'四环并嘧啶酮通式',v:'unk',conf:'68%'},
+   {cl:'权利要求 4',txt:'含氟取代基限定',mine:'无氟代',v:'miss',conf:'95%'},
+   {cl:'权利要求 9',txt:'G12D 突变实体瘤用途',mine:'胰腺癌、结直肠癌',v:'hit',conf:'90%'},
+  ]},
+ 'WO2024/012345 A1':{title:'Tetracyclic compounds as inhibitors of KRAS G12D',riskP:'serious',riskT:'中风险',concl:'PCT 申请进入国家阶段,中国同族审查未决;通式与我方骨架高度相关,是未来最需要跟踪的竞品专利。',
+  adv:'① 列入月度监控订阅;② 关注中国同族审查动态,必要时准备第三方公众意见。',
+  rows:[
+   {cl:'权利要求 1',txt:'四环化合物通式(含氮杂环)',mine:'四环并嘧啶酮通式',v:'unk',conf:'64%'},
+   {cl:'权利要求 6',txt:'口服制剂',mine:'口服',v:'hit',conf:'92%'},
+  ]},
+ 'US11898765B2':{title:'Crystalline forms of a KRAS G12D inhibitor',riskP:'good',riskT:'低风险',concl:'保护晶型 A,我方采用晶型 B(PXRD 谱不同),未落入;但需保留晶型表征数据以备诉讼举证。',
+  adv:'① 固化晶型 B 的 PXRD/TGA/DSC 数据存档;② 关注对方后续晶型继续申请(CA)。',
+  rows:[
+   {cl:'权利要求 1',txt:'晶型 A(PXRD 特征峰)',mine:'晶型 B',v:'miss',conf:'96%'},
+  ]},
+ 'EP4489123A1':{title:'Combination therapy comprising a G12D inhibitor and a SHP2 inhibitor',riskP:'good',riskT:'低风险',concl:'保护联合给药方案,我方当前单药方案未落入;若未来转向联用,需重新评估。',
+  adv:'① 立项决策若包含 SHP2 联用,需补充联用 FTO;② 关注该申请全球同族授权情况。',
+  rows:[
+   {cl:'权利要求 1',txt:'G12D 抑制剂 + SHP2 抑制剂联合方案',mine:'单药',v:'miss',conf:'95%'},
+  ]},
+ 'CN118123456A':{title:'一种 KRAS G12D 抑制剂中间体的制备方法',riskP:'good',riskT:'低风险',concl:'工艺专利,我方自有路线 2 关键步骤不同,未落入;工艺对比表已生成。',
+  adv:'① 保留路线设计与实验记录作为独立研发证据;② 持续监控同族继续申请。',
+  rows:[
+   {cl:'权利要求 1',txt:'步骤(a)-(d)的中间体制备路线',mine:'自有路线 2',v:'miss',conf:'93%'},
+  ]},
+};
+let patFilter='all';
+function renderPatents(){
+  const list=$('#patList');
+  list.innerHTML=PATENTS.filter(p=>patFilter==='all'||p.risk===patFilter).map(p=>`
+    <div class="patent" data-pn="${p.pn}" tabindex="0" role="button" aria-label="查看 ${p.pn} 的 Claim Chart">
+      <div class="pn">${p.pn}</div>
+      <div class="t">${p.t}</div>
+      <div class="meta">
+        <span class="pill blue"><span class="d"></span>${p.app}</span>
+        <span class="pill ${p.riskP}"><span class="d"></span>${p.riskT}</span>
+        <span class="pill">${p.status}</span>
+        <span class="pill">到期 ${p.exp}</span>
+      </div>
+      <div class="score-row"><span class="lb">相关性</span><div class="track"><div class="fill" style="width:${p.score}%"></div></div><span class="num">${p.score}</span></div>
+    </div>`).join('');
+  $$('#patList .patent').forEach(el=>el.addEventListener('click',()=>openDrawer(el.dataset.pn)));
+  $('#patHint').textContent='点击任一专利查看 Claim Chart';
+}
+$$('#scene-fto .fchip').forEach(f=>f.addEventListener('click',()=>{
+  $$('#scene-fto .fchip').forEach(x=>x.classList.remove('on'));f.classList.add('on');
+  patFilter=f.dataset.f;renderPatents();
+  toast('已按风险等级过滤(风险色随专利本身,不因过滤改变)');
+}));
+function rerunSearch(){toast('检索重新运行中:语义检索兜底已启用…(演示)');setTimeout(()=>toast('命中 1,284 件,初筛结果不变'),1500);}
+/* 抽屉 */
+function openDrawer(pn){
+  const d=CC[pn];
+  $('#dTitle').textContent=pn+' · '+d.title;
+  const rp=$('#dRisk');rp.className='pill '+d.riskP;rp.innerHTML='<span class="d"></span>'+d.riskT;
+  $('#dBody').innerHTML=`
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:10px">Claim Chart · 我方技术特征 vs 权利要求要素(点击原文定位)</div>
+    ${d.rows.map(r=>`
+      <div class="cc-row">
+        <div>
+          <div class="cl"><b>${r.cl}</b></div>
+          <div class="cl" style="margin-top:4px">权利要求要素:<span class="link-span" onclick="toast('已定位专利原文段落(演示)')">${r.txt}</span></div>
+        </div>
+        <div>
+          <div class="cl" style="margin-top:4px">我方特征:<b style="color:var(--ink)">${r.mine}</b></div>
+          <div class="cl" style="margin-top:4px">AI 置信度 ${r.conf}</div>
+        </div>
+        <div class="verdict ${r.v==='hit'?'hit':r.v==='miss'?'miss':'unk'}">
+          <span class="ic">${r.v==='hit'?'✘':r.v==='miss'?'✓':'⚠'}</span>
+          ${r.v==='hit'?'落入':r.v==='miss'?'未落入':'待确认'}
+        </div>
+      </div>`).join('')}
+    <div class="concl">
+      <h4>风险结论(AI 生成 · 供代理人复核)</h4>
+      <p>${d.concl}</p>
+      <div class="adv"><b>规避与行动建议</b><br>${d.adv}</div>
+    </div>`;
+  $('#drawer').classList.add('show');$('#overlay').classList.add('show');
+}
+function closeDrawer(){$('#drawer').classList.remove('show');$('#overlay').classList.remove('show');}
+function acceptCC(){toast('已采纳分析,进入第 4 步:风险结论(演示)');closeDrawer();}
+function openReport(){$('#reportModal').classList.add('show');}
+function closeReport(){$('#reportModal').classList.remove('show');}
+/* FTO 排查项目管理:列表 → 项目五步工作区 */
+let ftoView='list', curFtoId=0;
+const FTO_STEPS=['技术方案输入','检索式生成','权利要求比对','风险结论','FTO 报告'];
+const FTO_PROJECTS=[
+ {name:'MRX-1133 类似物(口服 KRAS G12D 抑制剂)',field:'KRAS G12D',step:3,riskP:'crit',riskT:'高风险',updated:'2026-10-12 09:41',hit:2,miss:3,unk:1,
+  concl:'化合物通式落入 US11987654B2 独立权利要求 1、用途落入权利要求 8;晶型 B 与游离碱规避了从属权利要求 3、5。',
+  adv:'① 启动对 US11987654B2 的现有技术无效检索;② 评估与 Mirati 的许可谈判窗口;③ 评估适应症差异化(先开发结直肠癌);④ 固化晶型 B 的 PXRD/TGA/DSC 数据存档。'},
+ {name:'某 HER2 ADC(新一代载荷)',field:'HER2 ADC',step:4,riskP:'serious',riskT:'中风险',updated:'2026-10-11 16:20',hit:1,miss:2,unk:2,
+  concl:'载荷结构与某在审 PCT 通式部分交叠(待确认 2 项);连接子与制剂特征均未落入重点专利。',
+  adv:'① 跟踪该 PCT 中国同族审查动态;② 载荷差异化改造(位点偶联方案);③ 保留独立研发记录备证。'},
+ {name:'某口服 GLP-1 小分子',field:'GLP-1 口服',step:5,riskP:'good',riskT:'低风险',updated:'2026-10-10 11:05',hit:0,miss:4,unk:1,
+  concl:'全部特征未落入重点专利;剩余风险集中在用途权利要求的解释空间。',
+  adv:'① 律师审签后归档;② 年度复查到期日历;③ 关注重点专利的同族继续申请。'},
+ {name:'某仿制药立项排查(达格列净类)',field:'仿制药',step:2,riskP:'',riskT:'检索中',updated:'2026-10-09 15:32',hit:0,miss:0,unk:0,
+  concl:'',adv:''},
+];
+const curFto=()=>FTO_PROJECTS[curFtoId];
+function renderFtoView(){
+  const work=ftoView==='work';
+  $('#ftoListView').style.display=work?'none':'';
+  $('#ftoHero').style.display=work?'':'none';
+  $('#ftoHowto').style.display=work?'':'none';
+  $('#ftoBackBar').style.display=work?'':'none';
+  $('#ftoStepper').style.display=work?'':'none';
+  $('#ftoWrap').style.display=(work&&curFto().step===3)?'':'none';
+  $('#ftoExtraBody').style.display=(work&&curFto().step!==3)?'':'none';
+  if(work){
+    $('#ftoProjDesc').textContent=curFto().name+' · 当前第 '+curFto().step+' 步';
+    $('#ftoBackBar').innerHTML='<button class="btn sm" onclick="backToFtoList()">← 返回排查列表</button><span style="font-size:12px;color:var(--ink3)">当前项目:'+curFto().name+'</span>';
+    renderFtoStepper();
+    if(curFto().step===3){$('#ftoWrap').style.display='';}
+    else{renderFtoExtra();}
+  }else{
+    $('#ftoProjDesc').textContent='选择一个排查项目,或新建排查;点击项目进入五步工作区。';
+    renderFtoList();
+  }
+}
+function backToFtoList(){ftoView='list';renderFtoView();}
+function goFtoProj(i){curFtoId=i;ftoView='work';renderFtoView();toast('已进入排查:'+curFto().name);}
+function renderFtoList(){
+  $('#ftoListView').innerHTML=`<div class="card"><div class="card-h">排查项目列表 <span class="hint">点击任意项目进入五步工作区</span></div><div class="card-b" style="padding-top:6px">
+    ${FTO_PROJECTS.map((p,i)=>`
+      <div class="fto-item" onclick="goFtoProj(${i})">
+        <div class="grow1"><div class="nm">${p.name}</div><div class="sub-i">领域:${p.field} · 更新:${p.updated}</div></div>
+        <span class="pill">第 ${p.step} 步:${FTO_STEPS[p.step-1]}</span>
+        ${p.riskT?`<span class="pill ${p.riskP}">${p.riskP?'<span class="d"></span>':''}${p.riskT}</span>`:''}
+        <button class="btn sm primary" onclick="event.stopPropagation();goFtoProj(${i})">进入</button>
+      </div>`).join('')}
+    <button class="btn primary" style="width:100%;margin-top:12px;justify-content:center" onclick="openFtoNew()">+ 新建排查</button>
+  </div></div>`;
+}
+function openFtoNew(){$('#ftoNewModal').classList.add('show');setTimeout(()=>$('#ftoNewName').focus(),50);}
+function closeFtoNew(){$('#ftoNewModal').classList.remove('show');}
+$('#ftoNewOk').addEventListener('click',()=>{
+  const nm=$('#ftoNewName').value.trim();
+  if(!nm){toast('请输入排查项目名称');return;}
+  FTO_PROJECTS.push({name:nm,field:'自定义',step:1,riskP:'',riskT:'待排查',updated:'刚刚',hit:0,miss:0,unk:0,concl:'',adv:''});
+  $('#ftoNewName').value='';$('#ftoNewModal').classList.remove('show');
+  goFtoProj(FTO_PROJECTS.length-1);
+  toast('已新建排查「'+nm+'」,从第 1 步开始');
+});
+$('#ftoNewName').addEventListener('keydown',e=>{if(e.key==='Enter')$('#ftoNewOk').click();});
+function renderFtoStepper(){
+  const st=curFto().step;
+  $('#ftoStepper').innerHTML=FTO_STEPS.map((t,i)=>{
+    const n=i+1, cls=n<st?'done':n===st?'cur':'';
+    return `<div class="step ${cls}" data-n="${n}"><span class="n">${n<st?'✓':n}</span>${t}</div>`;
+  }).join('<div class="step-sep"></div>');
+  $$('#ftoStepper .step').forEach(el=>el.addEventListener('click',()=>goFtoStep(+el.dataset.n)));
+}
+function goFtoStep(n){
+  if(n<1||n>5)return;
+  curFto().step=n;
+  renderFtoView();
+  toast('已切换到第 '+n+' 步:'+FTO_STEPS[n-1]);
+}
+function renderFtoExtra(){
+  const p=curFto();
+  const nav=(next)=>`<div class="slr-nav"><button class="btn" onclick="goFtoStep(${p.step-1})">← 上一步</button><button class="btn primary" onclick="goFtoStep(${next})">${next<=5?'下一步:第 '+next+' 步 →':'已完成全部步骤 ✓'}</button></div>`;
+  let h='';
+  if(p.step===1){
+    h=`<div class="card"><div class="card-h">技术方案输入<span class="hint">五要素结构化填写,不用懂专利法</span></div><div class="card-b">
+      <div class="kpi-line"><span class="k">化合物</span><span class="v" style="font-weight:400;color:var(--ink2)">与「${p.name}」匹配的核心通式 / 结构</span></div>
+      <div class="kpi-line"><span class="k">晶型</span><span class="v" style="font-weight:400;color:var(--ink2)">晶型 B(自有 PXRD 谱)</span></div>
+      <div class="kpi-line"><span class="k">盐型</span><span class="v" style="font-weight:400;color:var(--ink2)">游离碱</span></div>
+      <div class="kpi-line"><span class="k">用途</span><span class="v" style="font-weight:400;color:var(--ink2)">拟申报适应症(待确认)</span></div>
+      <div class="kpi-line"><span class="k">工艺</span><span class="v" style="font-weight:400;color:var(--ink2)">自有路线</span></div>
+      <div class="kb-note" style="margin-top:10px">五要素越完整,检索越精准;方案确认后 AI 自动生成检索式。</div>
+    </div></div>`+nav(2);
+  } else if(p.step===2){
+    h=`<div class="card"><div class="card-h">检索式生成<span class="hint">AI 生成 · 可编辑</span></div><div class="card-b">
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:6px">IPC / CPC 分类号</div>
+      <span class="ipc-chip">A61K 31/519<span class="x" onclick="toast('已移除分类号(演示)')">×</span></span>
+      <span class="ipc-chip">C07D 487/04<span class="x" onclick="toast('已移除分类号(演示)')">×</span></span>
+      <span class="ipc-chip">A61P 35/00<span class="x" onclick="toast('已移除分类号(演示)')">×</span></span>
+      <div style="font-size:11px;color:var(--ink3);margin:8px 0 6px">关键词 / 同义词(含 Markush 通式语义)</div>
+      <span class="kw">${p.field}</span><span class="kw">化合物</span><span class="kw">晶型</span><span class="kw">制剂</span><span class="kw">适应症</span>
+      <div class="kpi-line" style="margin-top:12px"><span class="k">全球检索命中</span><span class="v">1,284 件</span></div>
+      <div class="kpi-line"><span class="k">语义检索兜底</span><span class="v">已启用</span></div>
+      <div class="kpi-line"><span class="k">检索覆盖度</span><span class="v">94.2%</span></div>
+      <button class="btn sm primary" style="margin-top:8px" onclick="toast('检索重新运行中(演示)')">重新运行检索</button>
+    </div></div>`+nav(3);
+  } else if(p.step===4){
+    h=`<div class="card"><div class="card-h">风险结论<span class="hint">AI 生成 · 供代理人复核</span></div><div class="card-b">
+      <div style="margin-bottom:10px">
+      ${p.riskT?`<span class="pill ${p.riskP}"><span class="d"></span>总体风险:${p.riskT}</span>`:''}
+      <span class="pill good" style="margin-left:8px"><span class="d"></span>未落入 ${p.miss} 项</span>
+      <span class="pill crit" style="margin-left:8px"><span class="d"></span>落入 ${p.hit} 项</span>
+      <span class="pill warn" style="margin-left:8px"><span class="d"></span>待确认 ${p.unk} 项</span></div>
+      <div class="kb-note" style="line-height:1.9"><b style="color:var(--ink)">结论:</b>${p.concl||'风险结论生成中,请先在比对步骤完成复核。'}<br>
+      <b style="color:var(--ink)">规避与行动建议:</b>${p.adv||'—'}</div>
+    </div></div>`+nav(5);
+  } else if(p.step===5){
+    h=`<div class="card"><div class="card-h">FTO 报告<span class="hint">模板化章节 + AI 起草</span></div><div class="card-b">
+      <div class="report-struct">
+        <div class="rline"><span class="pill good"><span class="d"></span>已生成</span>执行摘要</div>
+        <div class="rline"><span class="pill good"><span class="d"></span>已生成</span>检索策略(1,284 件命中)</div>
+        <div class="rline"><span class="pill good"><span class="d"></span>已生成</span>重点专利比对摘要(6 件)</div>
+        <div class="rline"><span class="pill good"><span class="d"></span>已生成</span>权利要求比对表(42 个判定步骤)</div>
+        <div class="rline"><span class="pill warn"><span class="d"></span>生成中</span>风险结论与建议</div>
+        <div class="rline"><span class="pill blue"><span class="d"></span>自动附加</span>免责声明与审计轨迹</div>
+      </div>
+      <div class="slr-nav"><button class="btn" onclick="goFtoStep(4)">← 上一步</button><button class="btn primary" onclick="openReport()">生成 FTO 报告初稿</button></div>
+    </div></div>`;
+  }
+  $('#ftoExtraBody').innerHTML=h;
+}
+
+/* ================= 情报地图 ================= */
+const TECH=['骨架修饰','前药设计','共晶设计','制剂增溶','联合用药'];
+const FX=['活性','选择性','代谢稳定','口服利用度','毒性改善'];
+/* 领域模型:切换领域后整页数据联动 */
+const H1=[8,3,2,1,5, 4,6,3,2,3, 2,2,5,4,6, 3,4,6,8,4, 12,9,6,3,2];
+const H3=[22,8,5,3,14, 10,16,8,5,8, 5,5,13,10,16, 8,10,16,21,10, 31,24,16,8,5];
+const H5=[38,13,9,5,24, 17,27,14,9,14, 9,9,22,17,27, 14,17,27,36,17, 53,41,27,14,9];
+function tfH(h,f,shift){return h.map((v,i)=>Math.max(1,Math.round(v*f+((i+shift)%3===0?4:0))));}
+function tfC(comps,f){return comps.map(c=>({...c,v:Math.max(4,Math.round(c.v*f))}));}
+function compsByRange(c3){return {'1y':tfC(c3,0.19),'3y':c3,'5y':tfC(c3,2.2)};}
+const FIELDS=[
+ {name:'KRAS G12D 抑制剂',tf:1.0,grow:'+18%',oppN:3,compN:6,pat3:2318,
+  heat:{'1y':H1,'3y':H3,'5y':H5},
+  comps:compsByRange([{n:'Mirati',full:'Mirati(百时美施贵宝)',v:96},{n:'恒瑞',full:'恒瑞医药',v:74},{n:'RevMed',full:'Revolution Medicines',v:68},{n:'益方',full:'益方生物',v:52},{n:'礼来',full:'礼来',v:46},{n:'凯莱英',full:'凯莱英',v:31}]),
+  opp:[{k:'机会窗口',t:'前药设计 × 口服利用度 为空白高增长格 —— 立项方向候选'},{k:'机会窗口',t:'共晶设计 × 毒性改善 专利稀少,差异化空间大'}],
+  free:[{no:'US8573213B2',t:'某 G12D 抑制剂中间体专利 · 今日到期,技术可免费使用'},{no:'CN103987654B',t:'某嘧啶并吡啶合成路线 · 未缴年费失效'}]},
+ {name:'HER2 ADC',tf:1.15,grow:'+26%',oppN:4,compN:6,pat3:3820,
+  heat:{'1y':tfH(H1,1.4,1),'3y':tfH(H3,1.4,1),'5y':tfH(H5,1.4,1)},
+  comps:compsByRange([{n:'第一三共',full:'第一三共',v:132},{n:'荣昌',full:'荣昌生物',v:108},{n:'科伦',full:'科伦博泰',v:96},{n:'恒瑞',full:'恒瑞医药',v:82},{n:'映恩',full:'映恩生物',v:64},{n:'翰森',full:'翰森制药',v:48}]),
+  opp:[{k:'机会窗口',t:'共晶设计 × 活性 为空白格 —— 载荷-抗体共晶优化是差异化方向'},{k:'机会窗口',t:'制剂增溶 × 毒性改善 专利稀疏,高浓度皮下制剂有机会'}],
+  free:[{no:'US9845312B2',t:'某 ADC 连接子技术专利 · 今日到期,可免费使用'},{no:'EP3123456B1',t:'某偶联纯化工艺 · 未缴年费失效'}]},
+ {name:'GLP-1 口服',tf:1.3,grow:'+34%',oppN:2,compN:6,pat3:4510,
+  heat:{'1y':tfH(H1,1.9,2),'3y':tfH(H3,1.9,2),'5y':tfH(H5,1.9,2)},
+  comps:compsByRange([{n:'诺和诺德',full:'诺和诺德',v:156},{n:'礼来',full:'礼来',v:148},{n:'硕迪',full:'硕迪生物',v:96},{n:'恒瑞',full:'恒瑞医药',v:64},{n:'华东',full:'华东医药',v:52},{n:'银诺',full:'银诺医药',v:38}]),
+  opp:[{k:'机会窗口',t:'共晶设计 × 口服利用度 为高增长格 —— 口服多肽共晶是主战场'},{k:'机会窗口',t:'骨架修饰 × 毒性改善 空白,差异化空间'}],
+  free:[{no:'US9123456B2',t:'某 GLP-1 类似物制剂专利 · 今日到期'},{no:'CN105678901B',t:'某口服递送辅料组合 · 放弃失效'}]},
+ {name:'TIGIT 抑制剂',tf:0.55,grow:'-6%',oppN:1,compN:6,pat3:1120,
+  heat:{'1y':tfH(H1,0.6,3),'3y':tfH(H3,0.6,3),'5y':tfH(H5,0.6,3)},
+  comps:compsByRange([{n:'罗氏',full:'罗氏',v:48},{n:'百济',full:'百济神州',v:44},{n:'默沙东',full:'默沙东',v:36},{n:'吉利德',full:'吉利德',v:22},{n:'君实',full:'君实生物',v:18},{n:'康方',full:'康方生物',v:12}]),
+  opp:[{k:'观察',t:'赛道整体降温(增速 -6%),建议关注双抗路线分化机会,谨慎立项'}],
+  free:[{no:'US8675309B2',t:'某 TIGIT 抗体表位专利 · 到期,相关表位技术可用'}]},
+ {name:'微针递送',tf:0.35,grow:'+41%',oppN:5,compN:6,pat3:890,
+  heat:{'1y':tfH(H1,0.8,4),'3y':tfH(H3,0.8,4),'5y':tfH(H5,0.8,4)},
+  comps:compsByRange([{n:'3M',full:'3M 医疗',v:38},{n:'久光',full:'久光制药',v:32},{n:'佐藤',full:'佐藤制药',v:26},{n:'初创A',full:'某生物技术公司 A',v:22},{n:'初创B',full:'某生物技术公司 B',v:18},{n:'初创C',full:'某高校成果转化公司',v:14}]),
+  opp:[{k:'机会窗口',t:'微针递送 × 疫苗 为高增长空白格 —— 疫苗微针是当前最大机会'},{k:'机会窗口',t:'制剂增溶 × 代谢稳定 空白,长效微针方向'}],
+  free:[{no:'US8456789B2',t:'某可溶性微针基质专利 · 到期,基质配方可免费使用'},{no:'CN107890123B',t:'某疫苗微针制备方法 · 未缴年费失效'},{no:'JP6123456B2',t:'某缓释微针结构 · 到期'}]},
+];
+let curFieldId=0;
+const curField=()=>FIELDS[curFieldId];
+const REGION=['global','cn','us'];
+let timeRange='3y', region='all';
+/* 稳定伪随机趋势数据(缓存) */
+const trendCache={};
+const TREND_PARAM={
+ 'global':{base:{'1y':40,'3y':60,'5y':80},slope:{'1y':1.2,'3y':1.5,'5y':2.2}},
+ 'cn':    {base:{'1y':24,'3y':34,'5y':44},slope:{'1y':3.6,'3y':3.1,'5y':4.0}},
+ 'us':    {base:{'1y':20,'3y':28,'5y':40},slope:{'1y':1.6,'3y':2.0,'5y':2.6}},
+};
+function genTrend(reg,win){
+  const key=reg+'_'+win; if(trendCache[key])return trendCache[key];
+  const rnd=mulberry32({'global':11,'cn':22,'us':33}[reg]+(win==='1y'?100:win==='3y'?300:500));
+  const n=win==='1y'?12:win==='3y'?36:60;
+  const p=TREND_PARAM[reg], base=p.base[win], slope=p.slope[win];
+  const arr=[]; for(let i=0;i<n;i++){arr.push(Math.round(base+slope*i+rnd()*14));}
+  trendCache[key]=arr; return arr;
+}
+function monthLabels(win){
+  if(win==='1y')return ['25-11','25-12','26-01','26-02','26-03','26-04','26-05','26-06','26-07','26-08','26-09','26-10'];
+  const n=win==='3y'?36:60, lbl=[]; for(let i=0;i<n;i++){const y=2026-Math.floor((n-1-i)/12), m=11-((n-1-i)%12); lbl.push(String(y).slice(2)+'-'+String(m).padStart(2,'0'));} return lbl;
+}
+function heatColor(v){
+  if(v<8)return {c:'var(--s250)',tc:'var(--ink)'};
+  if(v<15)return {c:'var(--s350)',tc:'var(--ink)'};
+  if(v<23)return {c:'var(--s450)',tc:'#fff'};
+  if(v<31)return {c:'var(--s500)',tc:'#fff'};
+  return {c:'var(--s600)',tc:'#fff'};
+}
+/* 热力图:改用 CSS Grid 实现,彻底消除 SVG 拉伸/裁切导致的文字重叠 */
+function renderHeat(){
+  const wrap=$('#heatWrap'), data=curField().heat[timeRange];
+  let h='<div class="heat-grid"><div></div>'+FX.map(f=>`<div class="clab">${f}</div>`).join('');
+  data.forEach((v,i)=>{
+    const r=Math.floor(i/5), c=i%5, col=heatColor(v);
+    h+=(c===0?`<div class="rlab">${TECH[r]}</div>`:'');
+    h+=`<div class="cell" data-i="${i}" style="background:${col.c};color:${col.tc}" tabindex="0" role="button" aria-label="${TECH[r]} × ${FX[c]}:${v} 件专利">${v}</div>`;
+  });
+  h+='</div>';
+  wrap.innerHTML=h;
+  const tt=document.createElement('div');tt.className='viz-tooltip';wrap.appendChild(tt);
+  $$('#heatWrap .cell').forEach(cell=>{
+    const show=()=>{
+      const i=+cell.dataset.i, r=Math.floor(i/5), v=data[i];
+      tt.innerHTML=`<div class="tt-h">${TECH[r]} × ${FX[i%5]}</div><div class="tt-row">专利数<span class="tt-val">${v} 件</span></div>`;
+      placeTt(tt,wrap,cell,cell.offsetWidth/2-70,(r>=3?-30:cell.offsetHeight-30));
+    };
+    cell.addEventListener('pointerenter',show);
+    cell.addEventListener('focus',show);
+  });
+  wrap.addEventListener('pointerleave',()=>{tt.style.opacity=0;});
+}
+function renderBars(){
+  const svg=$('#barChart'), W=svg.clientWidth||300, H=190, pad={l:42,r:36,t:10,b:22};
+  const data=curField().comps[timeRange], max=Math.max(...data.map(d=>d.v))*1.12;
+  let s='';
+  for(let g=0;g<=3;g++){const v=max/3*g, y=H-pad.b-(H-pad.t-pad.b)*v/max;s+=`<line class="gridline" x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}"/>`;}
+  const tt=document.createElement('div');tt.className='viz-tooltip';svg.parentElement.appendChild(tt);
+  const bh=$('#barHint'); if(bh)bh.textContent='当前领域:'+curField().name+' · 近 12 个月';
+  data.forEach((d,i)=>{
+    const x=pad.l+(W-pad.l-pad.r)*(i+0.5)/data.length, h=(H-pad.t-pad.b)*d.v/max, y=H-pad.b-h;
+    s+=`<rect class="bar-hit" x="${x-14}" y="${pad.t}" width="28" height="${H-pad.b-pad.t}"/>`;
+    s+=`<rect class="hover-bar" x="${x-9}" y="${y}" width="18" height="${h}" rx="4" fill="var(--c1)"/>`;
+    s+=`<text class="axis-t" x="${x}" y="${y-5}" text-anchor="middle" style="font-weight:600;fill:var(--ink2)">${d.v}</text>`;
+    s+=`<text class="axis-t" x="${x}" y="${H-7}" text-anchor="middle">${d.n}</text>`;
+  });
+  svg.innerHTML=s;
+  svg.onpointermove=e=>{
+    const p=svgPoint(svg,e);
+    const i=Math.floor((p.x-pad.l)/((W-pad.l-pad.r)/data.length));
+    if(i<0||i>=data.length){tt.style.opacity=0;return;}
+    const d=data[i], x=pad.l+(W-pad.l-pad.r)*(i+0.5)/data.length;
+    tt.innerHTML=`<div class="tt-h">${d.full}</div><div class="tt-row">${timeRange==='1y'?'近 1 年':timeRange==='3y'?'近 3 年':'近 5 年'}申请<span class="tt-val">${d.v} 件</span></div>`;
+    placeTt(tt,svg.parentElement,svg,x-70,4);
+  };
+  svg.onpointerleave=()=>{tt.style.opacity=0;};
+}
+function renderTrend(){
+  const svg=$('#lineChart'), W=svg.clientWidth||300, H=170, pad={l:40,r:12,t:10,b:22};
+  const win=timeRange;
+  const series=region==='all'
+    ?[{k:'global',n:'全球',c:'var(--c1)'},{k:'cn',n:'中国',c:'var(--c2)'}]
+    :[{k:region,n:region==='global'?'全球':region==='cn'?'中国':'美国',c:region==='global'?'var(--c1)':region==='cn'?'var(--c2)':'var(--c3)'}];
+  const data=series.map(s=>({...s,d:genTrend(s.k,win).map(v=>Math.max(4,Math.round(v*curField().tf)))}));
+  const labels=monthLabels(win);
+  const max=Math.max(...data.flatMap(s=>s.d))*1.12;
+  const X=i=>pad.l+(W-pad.l-pad.r)*i/(labels.length-1), Y=v=>H-pad.b-(H-pad.t-pad.b)*v/max;
+  let s='';
+  for(let g=0;g<=3;g++){const v=max/3*g, y=Y(v);s+=`<line class="gridline" x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}"/>`;}
+  const tick=Math.ceil(labels.length/4);
+  labels.forEach((l,i)=>{if(i%tick===0||i===labels.length-1)s+=`<text class="axis-t" x="${X(i)}" y="${H-6}" text-anchor="middle">${l}</text>`;});
+  const path=d=>d.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join('');
+  data.forEach(se=>{s+=`<path class="series-line" stroke="${se.c}" d="${path(se.d)}"/>`;});
+  /* 终点标记 + 防碰撞终点标签(碰撞时下移并用引导线连接) */
+  let lastLabelY=-1e9;
+  data.forEach(se=>{
+    const i=se.d.length-1, dotY=Y(se.d[i]);
+    let ly=dotY+4;
+    if(ly-lastLabelY<13) ly=lastLabelY+13;
+    ly=Math.min(ly,H-5); lastLabelY=ly;
+    s+=`<circle class="enddot" cx="${X(i)}" cy="${dotY}" r="4" fill="${se.c}"/>`;
+    if(ly!==dotY+4) s+=`<line x1="${X(i)+5}" y1="${dotY}" x2="${X(i)+9}" y2="${ly-2}" stroke="var(--axis)" stroke-width="1"/>`;
+    s+=`<text class="axis-t" style="font-weight:600;fill:var(--ink2)" x="${X(i)+9}" y="${ly}">${se.d[i]}</text>`;
+  });
+  svg.innerHTML=s;
+  $('#lineLegend').innerHTML=data.map(se=>`<span class="lg"><span class="lk" style="background:${se.c}"></span>${se.n}</span>`).join('');
+  const tt=document.createElement('div');tt.className='viz-tooltip';svg.parentElement.appendChild(tt);
+  const ch=document.createElementNS('http://www.w3.org/2000/svg','line');ch.setAttribute('class','crosshair');ch.setAttribute('y1',pad.t);ch.setAttribute('y2',H-pad.b);ch.style.display='none';svg.appendChild(ch);
+  svg.onpointermove=e=>{
+    const p=svgPoint(svg,e);
+    if(p.x<pad.l||p.x>W-pad.r){ch.style.display='none';tt.style.opacity=0;return;}
+    const i=Math.round((p.x-pad.l)/((W-pad.l-pad.r)/(labels.length-1)));
+    const cx=X(i);ch.setAttribute('x1',cx);ch.setAttribute('x2',cx);ch.style.display='';
+    tt.innerHTML=`<div class="tt-h">${labels[i]}</div>`+data.map(se=>`<div class="tt-row"><span class="tt-lk" style="background:${se.c}"></span>${se.n}<span class="tt-val">${se.d[i]}</span></div>`).join('');
+    placeTt(tt,svg.parentElement,svg,cx-70,6);
+  };
+  svg.onpointerleave=()=>{ch.style.display='none';tt.style.opacity=0;};
+  $('#trendHint').textContent='当前领域:'+curField().name+' · '+(win==='1y'?'近 1 年':win==='3y'?'近 3 年':'近 5 年');
+}
+$$('#scene-map .fchip').forEach(f=>f.addEventListener('click',()=>{
+  $$('#scene-map .fchip').forEach(x=>x.classList.remove('on'));f.classList.add('on');
+  timeRange=f.dataset.t;renderHeat();renderBars();renderTrend();
+}));
+$('#regionSel').addEventListener('change',e=>{region=e.target.value;renderTrend();});
+/* 领域切换 + 机会清单(进攻能力) */
+function renderFieldRow(){
+  $('#fieldRow').innerHTML=FIELDS.map((f,i)=>`<button class="sub ${i===curFieldId?'on':''}" data-i="${i}">${f.name}</button>`).join('');
+  $$('#fieldRow .sub').forEach(b=>b.addEventListener('click',()=>{
+    curFieldId=+b.dataset.i;
+    renderFieldRow();updateMapHero();renderHeat();renderBars();renderTrend();renderOpp();
+    toast('已切换领域:'+curField().name+' · 整页数据已更新');
+  }));
+}
+function updateMapHero(){
+  const f=curField();
+  $('#mapFieldDesc').textContent=f.name;
+  $('#heroPatCnt').innerHTML=f.pat3.toLocaleString()+'<span class="u">件</span>';
+  $('#heroPatGrow').textContent=f.grow;
+  $('#heroPatOpp').innerHTML=f.oppN+'<span class="u">个</span>';
+  $('#heroPatComp').innerHTML=f.compN+'<span class="u">家</span>';
+}
+function renderOpp(){
+  const f=curField();
+  $('#oppBody').innerHTML=`
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:8px">${f.name} · 机会窗口(热力图空白高增长格)</div>
+    ${f.opp.map(o=>`<div class="kpi-line"><span class="k">${o.k}</span><span class="v" style="font-weight:400;color:var(--ink2)">${o.t}</span></div>`).join('')}
+    <div style="font-size:12px;color:var(--ink3);margin:12px 0 8px">近期到期 / 失效专利(可免费使用)</div>
+    ${f.free.map(x=>`<div class="kpi-line"><span class="k" style="font-variant-numeric:tabular-nums">${x.no}</span><span class="v" style="font-weight:400;color:var(--ink2)">${x.t}</span></div>`).join('')}`;
+}
+
+/* ================= 监控预警 ================= */
+/* 预警订阅:切换 / 删除(确认) / 新建 */
+let curAlertId=0, alertPendingDel=-1;
+const ALERT_SUBS=[
+ {name:'KRAS G12D',items:[
+  {l:'crit',t:'US11987654B2 被第三方提出无效宣告(IPR 2026-0009)',s:'Mirati 核心专利被提 IPR,听证日 2027-02 —— 影响:你的 FTO 策略窗口出现松动,建议同步评估',time:'10-11'},
+  {l:'serious',t:'CN117800754A 下发审查意见:权利要求 1 创造性被质疑',s:'益方生物核心申请授权范围可能收窄 —— 影响:中风险降级可能性,继续跟踪',time:'10-09'},
+  {l:'warn',t:'CN118123456A(凯莱英)年费缴纳期限临近',s:'缴费截止 2026-12-31,逾期将丧失权利 —— 影响:工艺专利障碍可能消失',time:'10-08'},
+  {l:'good',t:'WO2024/012345 A1 进入中国国家阶段',s:'Revolution Medicines 中国同族进入实审 —— 影响:已加入月度监控订阅',time:'10-06'},
+  {l:'warn',t:'EP4489123A1(恒瑞)同族在美国收到限制要求',s:'美局要求分案 —— 影响:联合用药权利要求在美保护范围待定',time:'10-04'}]},
+ {name:'Mirati(百时美施贵宝)',items:[
+  {l:'crit',t:'US11987654B2 被第三方提出无效宣告(IPR 2026-0009)',s:'核心化合物专利被提 IPR,若无效成立将显著改变竞争格局',time:'10-11'},
+  {l:'good',t:'新公开晶型继续申请(CA)',s:'围绕 MRTX1133 的晶型专利继续申请,布局加密',time:'10-07'},
+  {l:'warn',t:'欧洲同族年费缴纳记录更新',s:'6 件欧洲专利年费状态更新,2 件临近期限',time:'10-03'}]},
+ {name:'恒瑞医药',items:[
+  {l:'serious',t:'EP4489123A1 同族在美国收到限制要求',s:'美局要求分案 —— 联合用药权利要求在美保护范围待定',time:'10-04'},
+  {l:'good',t:'新公开:GLP-1 口服化合物 PCT 申请',s:'进入 43 个国家/地区,口服减重赛道持续加码',time:'10-02'},
+  {l:'warn',t:'某 ADC 专利被提无效',s:'第三方以创造性不足为由提出无效,关注后续决定',time:'09-28'}]},
+ {name:'益方生物',items:[
+  {l:'warn',t:'CN117800754A 年费缴纳期限临近',s:'缴费截止 2026-12-31 —— 影响:逾期将丧失权利',time:'10-08'},
+  {l:'good',t:'新公开:G12D 抑制剂晶型专利',s:'晶型布局继续,覆盖更多固体形态',time:'09-30'}]},
+ {name:'Revolution Medicines',items:[
+  {l:'good',t:'WO2024/012345 A1 进入中国国家阶段',s:'中国同族进入实审,列入月度监控',time:'10-06'},
+  {l:'warn',t:'美国同族收到非最终驳回',s:'审查趋严,授权范围可能收窄 —— 持续跟踪',time:'09-25'}]},
+];
+function makeAlertSub(name){
+  return {name,items:[
+   {l:'good',t:'订阅「'+name+'」已建立,开始按日扫描',s:'新公开专利、法律状态变化将每日推送',time:'今天'},
+   {l:'warn',t:'等待首批监测结果',s:'一般 24 小时内产出首份动态周报',time:'今天'}]};
+}
+function renderAlertSubs(){
+  const row=$('#alertSubsRow');
+  row.innerHTML=ALERT_SUBS.map((s,i)=>`
+    <button class="sub hasx ${i===curAlertId?'on':''}" data-i="${i}">
+      ${s.name}<span class="sub-x" data-i="${i}" title="删除订阅">×</span>
+    </button>`).join('')+
+    `<button class="sub" style="border-style:dashed" id="btnNewAlert">+ 新建订阅</button>`;
+  $$('#alertSubsRow .sub').forEach(b=>{
+    b.addEventListener('click',e=>{
+      const x=e.target.closest('.sub-x');
+      if(x){alertPendingDel=+x.dataset.i;$('#alertDelName').textContent=ALERT_SUBS[alertPendingDel].name;$('#alertDelModal').classList.add('show');return;}
+      if(b.id==='btnNewAlert'){$('#alertNewModal').classList.add('show');setTimeout(()=>$('#alertNewName').focus(),50);return;}
+      curAlertId=+b.dataset.i;renderAlertSubs();renderAlerts();
+      toast('已切换订阅:'+ALERT_SUBS[curAlertId].name);
+    });
+  });
+}
+function renderAlerts(){
+  const items=ALERT_SUBS[curAlertId].items;
+  $('#alertList').innerHTML=items.map(a=>{
+    const pn=a.l==='crit'?'crit':a.l==='serious'?'serious':a.l==='warn'?'warn':'good';
+    const ic=a.l==='crit'?'!':a.l==='serious'?'⚠':a.l==='warn'?'◔':'✓';
+    const pt=a.l==='crit'?'紧急':a.l==='serious'?'重要':a.l==='warn'?'提醒':'更新';
+    return `<div class="alert-item">
+      <div class="ico ${pn}">${ic}</div>
+      <div><div class="t">${a.t}</div><div class="s">${a.s}</div>
+      <div style="margin-top:5px"><span class="pill ${pn}"><span class="d"></span>${pt}</span></div></div>
+      <span class="time">${a.time}</span></div>`;
+  }).join('');
+}
+function closeAlertDel(){$('#alertDelModal').classList.remove('show');}
+function closeAlertNew(){$('#alertNewModal').classList.remove('show');}
+$('#alertDelOk').addEventListener('click',()=>{
+  if(alertPendingDel<0)return;
+  const nm=ALERT_SUBS[alertPendingDel].name;
+  ALERT_SUBS.splice(alertPendingDel,1);
+  if(curAlertId>=ALERT_SUBS.length)curAlertId=ALERT_SUBS.length-1;
+  alertPendingDel=-1;$('#alertDelModal').classList.remove('show');
+  renderAlertSubs();renderAlerts();
+  toast('已删除订阅「'+nm+'」');
+});
+$('#alertNewOk').addEventListener('click',()=>{
+  const nm=$('#alertNewName').value.trim();
+  if(!nm){toast('请输入订阅名称');return;}
+  ALERT_SUBS.push(makeAlertSub(nm));curAlertId=ALERT_SUBS.length-1;
+  $('#alertNewName').value='';$('#alertNewModal').classList.remove('show');
+  renderAlertSubs();renderAlerts();
+  toast('已新建订阅「'+nm+'」');
+});
+$('#alertNewName').addEventListener('keydown',e=>{if(e.key==='Enter')$('#alertNewOk').click();});
+const TIMELINE=[
+ {y:'2026',ev:'某 DPP-4 抑制剂 · 中国核心化合物专利到期(登记平台)'},
+ {y:'2027',ev:'某 SGLT2 抑制剂 · 美国化合物专利到期(橙皮书)'},
+ {y:'2028',ev:'某 BTK 抑制剂 · 欧洲化合物专利到期(EPO)'},
+ {y:'2029',ev:'某 GLP-1 受体激动剂 · 美国制剂专利到期'},
+ {y:'2030',ev:'某 PD-1 单抗 · 中国专利链接登记到期'},
+ {y:'2031',ev:'某 CDK4/6 抑制剂 · 美国晶型专利到期'},
+ {y:'2032',ev:'某 ADC 载荷-连接子专利 · 日本到期'},
+];
+function renderTimeline(){
+  $('#timeline').innerHTML=TIMELINE.map(t=>`
+    <div class="tl-year">
+      <span class="yr">${t.y}</span><span class="dot"></span>
+      <div class="ev"><b>${t.y} · 到期</b>${t.ev}<span class="tag"><span class="pill blue"><span class="d"></span>关注</span></span></div>
+    </div>`).join('');
+  $$('#timeline .ev').forEach(ev=>ev.addEventListener('click',()=>toast('已展开该药物专利到期详情(演示)')));
+}
+
+/* ================= 专利库数据看板 ================= */
+const PAT_FEED_POOL=[
+ {no:'US11987654B2',t:'KRAS G12D inhibitors and methods of use',a:'Mirati(百时美施贵宝)',c:'美国'},
+ {no:'CN118456789B',t:'一种抗体偶联药物的纯化方法',a:'荣昌生物',c:'中国'},
+ {no:'EP4589012A1',t:'Crystalline forms of SGLT2 inhibitor',a:'某仿制药企',c:'欧洲'},
+ {no:'WO2026/078901 A1',t:'TIGIT/PD-L1 bispecific antibodies',a:'百济神州',c:'PCT'},
+ {no:'JP2026-045123A',t:'GLP-1 受容体作動薬の結晶形',a:'塩野義製薬',c:'日本'},
+ {no:'US12034567B2',t:'Microneedle arrays for vaccine delivery',a:'某生物技术公司',c:'美国'},
+ {no:'CN118123456A',t:'一种 KRAS G12D 抑制剂中间体的制备方法',a:'凯莱英',c:'中国'},
+ {no:'EP4489123A1',t:'Combination therapy of G12D and SHP2 inhibitors',a:'恒瑞医药',c:'欧洲'},
+];
+let patFeedIdx=0, patToday=24318;
+function patPushFeed(){
+  const item=PAT_FEED_POOL[patFeedIdx%PAT_FEED_POOL.length];patFeedIdx++;
+  const el=document.createElement('div');el.className='kb-feed-item';
+  el.innerHTML=`<div class="t"><span class="pub-item no" style="padding:0">${item.no}</span> ${item.t}</div><div class="j"><span class="pill blue"><span class="d"></span>${item.c}</span><span class="pill">${item.a}</span><span class="time">刚刚</span></div>`;
+  const box=$('#patLiveFeed');box.prepend(el);
+  while(box.children.length>7)box.removeChild(box.lastChild);
+}
+function patTick(){patToday+=Math.ceil(Math.random()*4);$('#patTodayD').textContent='今日新增 '+patToday.toLocaleString()+' 件(实时)';}
+function renderPatPipe(){
+  const rows=[
+   {n:'CNIPA 中国',st:'real',delay:'刚刚',today:'9,306'},
+   {n:'USPTO 美国',st:'real',delay:'2 秒前',today:'8,421'},
+   {n:'EPO 欧洲',st:'real',delay:'5 分钟前',today:'3,874'},
+   {n:'WIPO(PCT)',st:'late',delay:'1 小时前',today:'1,552'},
+   {n:'日本特许厅',st:'late',delay:'12 小时前',today:'1,165'},
+  ];
+  $('#patPipe').innerHTML=rows.map(r=>`
+    <div class="pipe-row">
+      <span class="pdot ${r.st}"></span><b>${r.n}</b>
+      <span class="hint">${r.st==='real'?'实时同步':'延迟同步'} · ${r.delay}</span>
+      <span class="v">今日 ${r.today} 件</span>
+    </div>`).join('')+
+    `<div class="pipe-row"><span class="pdot real"></span><b>全局状态</b><span class="v" style="color:var(--good)">全部正常</span></div>`;
+}
+const PAT_TYPE_SEGS=[
+ {n:'发明专利',v:82,c:'#2a78d6'},{n:'实用新型',v:12,c:'#008300'},{n:'外观设计',v:5,c:'#e87ba4'},{n:'植物新品种',v:1,c:'#eda100'}];
+const PAT_STATUS_SEGS=[
+ {n:'有效',v:45,c:'#2a78d6'},{n:'审查中',v:18,c:'#008300'},{n:'失效',v:24,c:'#eb6834'},{n:'到期',v:13,c:'#e87ba4'}];
+function renderDonut(id,segs,cTitle,cVal){
+  const box=document.getElementById(id);if(!box)return;
+  const size=176,r=64,sw=24,C=2*Math.PI*r,cx=88,cy=88;
+  const total=segs.reduce((a,b)=>a+b.v,0);
+  let off=0,arcs='';
+  segs.forEach(sg=>{
+    const frac=sg.v/total,len=Math.max(frac*C-2,0.5);
+    arcs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${sg.c}" stroke-width="${sw}" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    off+=frac*C;
+  });
+  box.innerHTML=`<div class="donut-svg-wrap">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${cTitle}环形图">${arcs}</svg>
+    <div class="donut-center"><div class="v">${cVal}</div><div class="l">${cTitle}</div></div>
+  </div>
+  <div class="donut-legend">${segs.map(s=>`<span class="lg"><span class="sw" style="background:${s.c}"></span>${s.n} ${s.v}%</span>`).join('')}</div>`;
+  const svg=box.querySelector('svg');
+  const tt=document.createElement('div');tt.className='viz-tooltip';box.appendChild(tt);
+  svg.addEventListener('pointermove',e=>{
+    const rect=svg.getBoundingClientRect();
+    const dx=e.clientX-rect.left-rect.width/2, dy=e.clientY-rect.top-rect.height/2;
+    const ang=(Math.atan2(dy,dx)*180/Math.PI+270)%360, frac=ang/360;
+    let acc=0,hit=null;
+    for(const sg of segs){const f=sg.v/total;if(frac>=acc&&frac<acc+f){hit=sg;break;}acc+=f;}
+    if(!hit){tt.style.opacity=0;return;}
+    tt.innerHTML=`<div class="tt-h">${cTitle} · ${hit.n}</div><div class="tt-row">占比<span class="tt-val">${hit.v}%</span></div>`;
+    tt.style.left=(rect.width/2-70)+'px';tt.style.top='-2px';tt.style.opacity=1;
+  });
+  svg.addEventListener('pointerleave',()=>{tt.style.opacity=0;});
+}
+function renderPatTrend(){
+  const svg=$('#patTrend'), W=svg.clientWidth||560, H=210, pad={l:50,r:16,t:14,b:26};
+  const years=['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
+  const data=[36,39,41,38,45,48,52,55,58,61];
+  const max=Math.max(...data)*1.12, X=i=>pad.l+(W-pad.l-pad.r)*i/(years.length-1), Y=v=>H-pad.b-(H-pad.t-pad.b)*v/max;
+  let s='';
+  for(let g=0;g<=4;g++){const v=max/4*g, y=Y(v);s+=`<line class="gridline" x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}"/><text class="axis-t" x="${pad.l-8}" y="${y+4}" text-anchor="end">${Math.round(v)}</text>`;}
+  years.forEach((y,i)=>{s+=`<text class="axis-t" x="${X(i)}" y="${H-8}" text-anchor="middle">${y}</text>`;});
+  const path=data.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join('');
+  s+=`<path class="series-line" stroke="#4a3aa7" d="${path}"/>`;
+  const li=data.length-1;
+  s+=`<circle class="enddot" cx="${X(li)}" cy="${Y(data[li])}" r="4" fill="#4a3aa7"/><text class="axis-t" style="font-weight:600;fill:var(--ink2)" x="${X(li)+7}" y="${Y(data[li])+4}">${data[li]}</text>`;
+  svg.innerHTML=s;
+  const tt=document.createElement('div');tt.className='viz-tooltip';svg.parentElement.appendChild(tt);
+  const ch=document.createElementNS('http://www.w3.org/2000/svg','line');ch.setAttribute('class','crosshair');ch.setAttribute('y1',pad.t);ch.setAttribute('y2',H-pad.b);ch.style.display='none';svg.appendChild(ch);
+  svg.addEventListener('pointermove',e=>{
+    const r=svg.getBoundingClientRect(), px=e.clientX-r.left;
+    if(px<pad.l||px>W-pad.r){ch.style.display='none';tt.style.opacity=0;return;}
+    const i=Math.round((px-pad.l)/((W-pad.l-pad.r)/(years.length-1)));
+    const cx=X(i);ch.setAttribute('x1',cx);ch.setAttribute('x2',cx);ch.style.display='';
+    tt.innerHTML=`<div class="tt-h">${years[i]} 年</div><div class="tt-row">医药专利申请<span class="tt-val">${data[i]} 万件</span></div>`;
+    tt.style.left=Math.min(cx-60,W-160)+'px';tt.style.top='6px';tt.style.opacity=1;
+  });
+  svg.addEventListener('pointerleave',()=>{ch.style.display='none';tt.style.opacity=0;});
+}
+function renderPatCountry(){
+  const svg=$('#patCountry'), W=svg.clientWidth||360, H=210, pad={l:78,r:48,t:12,b:10};
+  const data=[{n:'中国',v:6460},{n:'美国',v:5320},{n:'欧洲',v:2660},{n:'日本',v:1710},{n:'韩国',v:1140},{n:'其他',v:1710}];
+  const rowH=(H-pad.t-pad.b)/data.length, bw=Math.min(20,rowH-12);
+  const max=Math.ceil(Math.max(...data.map(d=>d.v))*1.1), X=v=>pad.l+(W-pad.l-pad.r)*v/max;
+  let s='';
+  for(let g=0;g<=4;g++){const v=max/4*g, x=X(v);s+=`<line class="gridline" x1="${x}" y1="${pad.t}" x2="${x}" y2="${H-pad.b}"/>`;}
+  const tt=document.createElement('div');tt.className='viz-tooltip';svg.parentElement.appendChild(tt);
+  data.forEach((d,i)=>{
+    const cy=pad.t+rowH*i+rowH/2, xw=X(d.v);
+    s+=`<rect class="bar-hit" x="${pad.l}" y="${cy-rowH/2-3}" width="${W-pad.l-pad.r}" height="${rowH+6}"/>`;
+    s+=`<rect x="${pad.l}" y="${cy-bw/2}" width="${xw-pad.l}" height="${bw}" rx="4" fill="#4a3aa7"/>`;
+    s+=`<text class="axis-t" x="${xw+6}" y="${cy+4}" style="font-weight:650;fill:var(--ink)">${d.v.toLocaleString()}</text>`;
+    s+=`<text class="axis-t" x="${pad.l-8}" y="${cy+4}" text-anchor="end">${d.n}</text>`;
+  });
+  svg.innerHTML=s;
+  svg.addEventListener('pointermove',e=>{
+    const r=svg.getBoundingClientRect(), py=e.clientY-r.top;
+    const i=Math.floor((py-pad.t)/rowH);
+    if(i<0||i>=data.length){tt.style.opacity=0;return;}
+    const d=data[i];
+    tt.innerHTML=`<div class="tt-h">${d.n}</div><div class="tt-row">医药专利<span class="tt-val">${d.v.toLocaleString()} 万件</span></div>`;
+    tt.style.left='10px';tt.style.top=(pad.t+rowH*i-26)+'px';tt.style.opacity=1;
+  });
+  svg.addEventListener('pointerleave',()=>{tt.style.opacity=0;});
+}
+function renderPatPublic(){
+  const items=[
+   {no:'US8573213B2',t:'某 DPP-4 抑制剂晶型专利 · 今日到期',st:'到期'},
+   {no:'EP2 587 489B1',t:'某 SGLT2 抑制剂化合物专利 · 未缴年费失效',st:'失效'},
+   {no:'CN103654321B',t:'某缓释制剂专利 · 今日到期',st:'到期'},
+   {no:'JP5789012B2',t:'某 BTK 抑制剂制备方法 · 放弃',st:'放弃'},
+  ];
+  $('#patPublic').innerHTML=items.map(x=>`
+    <div class="pub-item">
+      <div><span class="no">${x.no}</span> <span class="pill good"><span class="d"></span>${x.st}</span></div>
+      <div class="t">${x.t}</div>
+    </div>`).join('')+
+    `<div class="kb-note" style="padding:10px 14px 12px">今日共 <b style="color:var(--ink)">1,247 件</b>医药专利进入公有领域——这些技术可以免费使用,点开即看技术要点与免费使用条件。</div>`;
+}
+
+/* ================= 初始化 ================= */
+renderPatents();renderFtoView();renderFieldRow();updateMapHero();renderHeat();renderBars();renderTrend();renderOpp();renderAlertSubs();renderAlerts();renderTimeline();
+renderPatPipe();renderDonut('patDonutType',PAT_TYPE_SEGS,'专利类型','1.9亿');renderDonut('patDonutStatus',PAT_STATUS_SEGS,'法律状态','100%');renderPatTrend();renderPatCountry();renderPatPublic();
+patPushFeed();patPushFeed();patPushFeed();
+setInterval(patTick,2000);setInterval(patPushFeed,3800);
+window.addEventListener('resize',()=>{renderBars();renderTrend();renderPatTrend();renderPatCountry();});
+</script>
+</body>
+</html>
