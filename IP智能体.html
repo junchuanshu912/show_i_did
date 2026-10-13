@@ -322,7 +322,7 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
   <button class="nav-item" data-scene="patlib">
     <span class="ic"><svg><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg></span>专利库 · 1.9亿件
   </button>
-  <a class="nav-item" href="index.html" style="text-decoration:none"><span class="ic"><svg><path d="M4 10l8-7 8 7M6 8.5V20h12V8.5"/></svg></span>返回作品集首页</a>
+  <a class="nav-item" href="index.html" target="_top" style="text-decoration:none" onclick="if(window.parent!==window&&window.parent.goMod){window.parent.goMod('home');return false;}"><span class="ic"><svg><path d="M4 10l8-7 8 7M6 8.5V20h12V8.5"/></svg></span>返回作品集首页</a>
   <div class="side-foot"><span class="dot"></span>日更管道正常 · 今日入库 24,318 件</div>
 </aside>
 
